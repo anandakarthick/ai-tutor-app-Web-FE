@@ -1,0 +1,13 @@
+export { Dashboard } from './Dashboard';
+export { Login } from './Login';
+export { Register } from './Register';
+export { Learn } from './Learn';
+export { SubjectDetail } from './SubjectDetail';
+export { ChapterDetail } from './ChapterDetail';
+export { Lesson } from './Lesson';
+export { Quizzes } from './Quizzes';
+export { QuizTaking } from './QuizTaking';
+export { Doubts } from './Doubts';
+export { Progress } from './Progress';
+export { Profile } from './Profile';
+export { StudyPlan } from './StudyPlan';
