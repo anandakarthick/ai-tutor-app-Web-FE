@@ -79,13 +79,13 @@ export function SubjectDetail() {
               className={`chapter-item ${isCompleted ? 'completed' : ''}`}
             >
               <div className="chapter-number">
-                {isCompleted ? <CheckCircle size={24} color="#22C55E" /> : index + 1}
+                {isCompleted ? <CheckCircle size={28} /> : index + 1}
               </div>
               <div className="chapter-info">
                 <h3>{chapter.chapterTitle}</h3>
                 <div className="chapter-meta">
-                  <span><BookOpen size={14} /> {chapter.totalTopics} topics</span>
-                  <span><Clock size={14} /> {chapter.estimatedHours || 1}h</span>
+                  <span><BookOpen size={15} /> {chapter.totalTopics || 3} topics</span>
+                  <span><Clock size={15} /> {chapter.estimatedHours || 1}h</span>
                 </div>
                 <div className="chapter-progress-bar">
                   <div className="chapter-progress-fill" style={{ width: `${progress}%` }} />
@@ -93,7 +93,7 @@ export function SubjectDetail() {
               </div>
               <div className="chapter-arrow">
                 <span className="chapter-progress-text">{Math.round(progress)}%</span>
-                <ChevronRight size={20} />
+                <ChevronRight size={22} />
               </div>
             </Link>
           );

@@ -101,7 +101,7 @@ export function Learn() {
           return (
             <Link key={subject.id} to={`/learn/subject/${subject.id}`} className="subject-item">
               <div className="subject-item-icon" style={{ background: `${color}15`, color }}>
-                <Icon size={28} />
+                <Icon size={32} />
               </div>
               <div className="subject-item-info">
                 <h3>{subject.displayName}</h3>
@@ -112,7 +112,7 @@ export function Learn() {
               </div>
               <div className="subject-item-meta">
                 <span className="subject-progress-text" style={{ color }}>{subject.progress}%</span>
-                <ChevronRight size={20} className="subject-arrow" />
+                <ChevronRight size={22} className="subject-arrow" />
               </div>
             </Link>
           );

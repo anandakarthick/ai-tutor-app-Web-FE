@@ -4,7 +4,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Send, Loader2, Bot, User, BookOpen, CheckCircle, X } from 'lucide-react';
+import { ArrowLeft, Send, Loader2, Bot, User, CheckCircle } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { contentApi, learningApi } from '../services/api';
 import toast from 'react-hot-toast';
@@ -74,32 +74,40 @@ export function Lesson() {
         // Load existing messages
         const messagesRes = await learningApi.getMessages(sessionRes.data.id);
         if (messagesRes.success && messagesRes.data.length > 0) {
-          setMessages(messagesRes.data);
+          // Filter out empty messages
+          const validMessages = messagesRes.data.filter((m: Message) => m.content && m.content.trim());
+          setMessages(validMessages);
         } else {
-          // Add welcome message
+          // Add welcome message and start teaching
           addWelcomeMessage(topicRes.data, contentRes.data || []);
         }
       }
     } catch (error) {
       console.error('Failed to load lesson:', error);
       toast.error('Failed to load lesson');
+      // Add fallback content
+      addFallbackContent();
     } finally {
       setLoading(false);
     }
   };
 
-  const addWelcomeMessage = (topicData: any, contentData: any[]) => {
-    const welcomeMsg: Message = {
-      id: 'welcome',
+  const addFallbackContent = () => {
+    const fallbackMsg: Message = {
+      id: 'fallback',
       senderType: 'ai',
-      content: `Hello! 👋 I'm your AI tutor. Today we'll learn about "${topicData?.topicTitle || 'this topic'}". Feel free to ask me any questions!\n\nLet me start by explaining the key concepts...`,
+      content: `Hello! 👋 I'm your AI tutor. I'm ready to help you learn about this topic.\n\nFeel free to ask me any questions, and I'll explain the concepts in a way that's easy to understand!\n\n**What would you like to learn about today?**`,
       createdAt: new Date().toISOString(),
     };
-    setMessages([welcomeMsg]);
-    
+    setMessages([fallbackMsg]);
+  };
+
+  const addWelcomeMessage = (topicData: any, contentData: any[]) => {
     // Stream the teaching content
     if (topicData && student) {
       streamTeachingContent(topicData, contentData);
+    } else {
+      addFallbackContent();
     }
   };
 
@@ -129,24 +137,33 @@ export function Lesson() {
       }
 
       // Add the streamed content as a message
-      const aiMsg: Message = {
-        id: `ai-${Date.now()}`,
-        senderType: 'ai',
-        content: fullContent,
-        createdAt: new Date().toISOString(),
-      };
-      setMessages(prev => [...prev.filter(m => m.id !== 'welcome'), aiMsg]);
+      if (fullContent && fullContent.trim()) {
+        const aiMsg: Message = {
+          id: `ai-${Date.now()}`,
+          senderType: 'ai',
+          content: fullContent,
+          createdAt: new Date().toISOString(),
+        };
+        setMessages([aiMsg]);
+      } else {
+        addFallbackContent();
+      }
       setStreamedContent('');
     } catch (error) {
       console.error('Streaming error:', error);
       // Fallback to regular content
-      const fallbackMsg: Message = {
-        id: `ai-${Date.now()}`,
-        senderType: 'ai',
-        content: contentData.map(c => c.content).join('\n\n') || topicData.description || 'Let me explain this topic to you.',
-        createdAt: new Date().toISOString(),
-      };
-      setMessages(prev => [...prev.filter(m => m.id !== 'welcome'), fallbackMsg]);
+      const fallbackContent = contentData.map(c => c.content).join('\n\n') || topicData.description;
+      if (fallbackContent && fallbackContent.trim()) {
+        const fallbackMsg: Message = {
+          id: `ai-${Date.now()}`,
+          senderType: 'ai',
+          content: fallbackContent,
+          createdAt: new Date().toISOString(),
+        };
+        setMessages([fallbackMsg]);
+      } else {
+        addFallbackContent();
+      }
     } finally {
       setStreaming(false);
     }
@@ -168,7 +185,7 @@ export function Lesson() {
 
     try {
       const response = await learningApi.sendMessage(session.id, inputMessage, 'text');
-      if (response.success) {
+      if (response.success && response.data.aiMessage?.content) {
         const aiMessage: Message = {
           id: response.data.aiMessage.id,
           senderType: 'ai',
@@ -202,6 +219,9 @@ export function Lesson() {
     }
   };
 
+  // Filter out empty messages
+  const validMessages = messages.filter(m => m.content && m.content.trim());
+
   if (loading) {
     return (
       <div className="lesson-loading">
@@ -224,27 +244,29 @@ export function Lesson() {
         </div>
         <button className="complete-btn" onClick={handleEndSession}>
           <CheckCircle size={20} />
-          Complete
+          <span>Complete Lesson</span>
         </button>
       </header>
 
       {/* Chat Container */}
       <div className="chat-container" ref={chatContainerRef}>
         <div className="messages-list">
-          {messages.map((message) => (
+          {validMessages.map((message) => (
             <div
               key={message.id}
               className={`message ${message.senderType === 'student' ? 'user' : 'ai'}`}
             >
               <div className="message-avatar">
                 {message.senderType === 'student' ? (
-                  <User size={18} />
+                  <User size={20} />
                 ) : (
-                  <Bot size={18} />
+                  <Bot size={20} />
                 )}
               </div>
               <div className="message-content">
-                <div className="message-text">{message.content}</div>
+                <div className="message-text">
+                  {message.content}
+                </div>
               </div>
             </div>
           ))}
@@ -253,7 +275,7 @@ export function Lesson() {
           {streaming && streamedContent && (
             <div className="message ai">
               <div className="message-avatar">
-                <Bot size={18} />
+                <Bot size={20} />
               </div>
               <div className="message-content">
                 <div className="message-text">{streamedContent}</div>
@@ -265,7 +287,7 @@ export function Lesson() {
           {(sending || (streaming && !streamedContent)) && (
             <div className="message ai">
               <div className="message-avatar">
-                <Bot size={18} />
+                <Bot size={20} />
               </div>
               <div className="message-content">
                 <div className="typing-indicator">
@@ -282,18 +304,20 @@ export function Lesson() {
       </div>
 
       {/* Input */}
-      <form className="chat-input-form" onSubmit={handleSendMessage}>
-        <input
-          type="text"
-          placeholder="Ask a question..."
-          value={inputMessage}
-          onChange={(e) => setInputMessage(e.target.value)}
-          disabled={sending || streaming}
-        />
-        <button type="submit" disabled={!inputMessage.trim() || sending || streaming}>
-          {sending ? <Loader2 size={20} className="spinner" /> : <Send size={20} />}
-        </button>
-      </form>
+      <div className="chat-input-wrapper">
+        <form className="chat-input-form" onSubmit={handleSendMessage}>
+          <input
+            type="text"
+            placeholder="Ask a question about this topic..."
+            value={inputMessage}
+            onChange={(e) => setInputMessage(e.target.value)}
+            disabled={sending || streaming}
+          />
+          <button type="submit" disabled={!inputMessage.trim() || sending || streaming}>
+            {sending ? <Loader2 size={20} className="spinner" /> : <Send size={20} />}
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

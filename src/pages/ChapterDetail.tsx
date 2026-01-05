@@ -4,7 +4,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, BookOpen, Clock, ChevronRight, CheckCircle, Play } from 'lucide-react';
+import { ArrowLeft, Clock, ChevronRight, CheckCircle, Play } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { contentApi } from '../services/api';
 import './Learn.css';
@@ -43,13 +43,21 @@ export function ChapterDetail() {
     }
   };
 
-  const getDifficultyColor = (level: string) => {
-    switch (level) {
+  const getDifficultyColor = (level: any) => {
+    if (!level) return '#6366F1';
+    const levelStr = typeof level === 'string' ? level.toLowerCase() : 'medium';
+    switch (levelStr) {
       case 'easy': return '#22C55E';
       case 'medium': return '#F59E0B';
       case 'hard': return '#EF4444';
       default: return '#6366F1';
     }
+  };
+
+  const getDifficultyLabel = (level: any) => {
+    if (!level) return 'Medium';
+    if (typeof level !== 'string') return 'Medium';
+    return level.charAt(0).toUpperCase() + level.slice(1).toLowerCase();
   };
 
   if (loading) {
@@ -68,7 +76,7 @@ export function ChapterDetail() {
       </header>
 
       <div className="topics-list">
-        {topics.map((topic, index) => (
+        {topics.map((topic) => (
           <Link
             key={topic.id}
             to={`/learn/topic/${topic.id}`}
@@ -76,10 +84,10 @@ export function ChapterDetail() {
           >
             <div className="topic-status">
               {topic.isCompleted ? (
-                <CheckCircle size={24} color="#22C55E" />
+                <CheckCircle size={28} color="#22C55E" />
               ) : (
                 <div className="topic-play">
-                  <Play size={16} />
+                  <Play size={18} fill="white" />
                 </div>
               )}
             </div>
@@ -87,12 +95,12 @@ export function ChapterDetail() {
               <h3>{topic.topicTitle}</h3>
               <div className="topic-meta">
                 <span><Clock size={14} /> {topic.estimatedMinutes || 15} min</span>
-                <span style={{ color: getDifficultyColor(topic.difficultyLevel) }}>
-                  {topic.difficultyLevel}
+                <span style={{ color: getDifficultyColor(topic.difficultyLevel), fontWeight: 500 }}>
+                  {getDifficultyLabel(topic.difficultyLevel)}
                 </span>
               </div>
             </div>
-            <ChevronRight size={20} className="topic-arrow" />
+            <ChevronRight size={22} className="topic-arrow" />
           </Link>
         ))}
       </div>
