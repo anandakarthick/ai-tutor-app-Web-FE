@@ -6,8 +6,6 @@
   min-height: 100vh;
   height: 100vh;
   background: #FFFBF7;
-  margin-left: 280px;
-  width: calc(100% - 280px);
 }
 
 .lesson-loading {
@@ -15,9 +13,9 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 60vh;
+  height: 100vh;
   gap: 16px;
-  margin-left: 280px;
+  background: #FFFBF7;
 }
 
 .lesson-loading .loading-spinner {
@@ -375,13 +373,7 @@
 /* Responsive */
 @media (max-width: 1024px) {
   .lesson-page {
-    margin-left: 0;
-    width: 100%;
     padding-top: 60px;
-  }
-
-  .lesson-loading {
-    margin-left: 0;
   }
 
   .lesson-header {
