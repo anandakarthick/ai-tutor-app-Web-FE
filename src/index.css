@@ -50,6 +50,41 @@ body {
   background: #F97316;
 }
 
+/* Touch-friendly improvements */
+@media (hover: none) and (pointer: coarse) {
+  /* Remove hover effects on touch devices */
+  .btn:hover {
+    transform: none;
+  }
+  
+  .feature-card:hover {
+    transform: none;
+  }
+  
+  .subject-card:hover {
+    transform: none;
+  }
+  
+  /* Add active states for touch */
+  .btn:active {
+    transform: scale(0.98);
+    opacity: 0.9;
+  }
+  
+  .feature-card:active,
+  .subject-card:active {
+    transform: scale(0.98);
+  }
+  
+  .nav-link:active {
+    color: var(--primary);
+  }
+  
+  .social-link:active {
+    background: var(--primary);
+  }
+}
+
 /* Selection color */
 ::selection {
   background: #F97316;
