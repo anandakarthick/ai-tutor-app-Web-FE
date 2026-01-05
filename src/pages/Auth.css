@@ -71,7 +71,14 @@
 .input-icon {
   position: absolute;
   left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
   color: #A8A29E;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 1;
 }
 
 .input-wrapper input {
@@ -94,14 +101,77 @@
   color: #A8A29E;
 }
 
+.input-wrapper input.input-no-icon {
+  padding-left: 16px;
+}
+
+.input-wrapper input.input-with-toggle {
+  padding-right: 48px;
+}
+
+/* Select Wrapper */
+.select-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.select-wrapper select {
+  width: 100%;
+  padding: 14px 40px 14px 16px;
+  border: 2px solid #FFEDD5;
+  border-radius: 12px;
+  font-size: 16px;
+  color: #1C1917;
+  background: white;
+  transition: border-color 0.2s;
+  appearance: none;
+  cursor: pointer;
+}
+
+.select-wrapper select:focus {
+  outline: none;
+  border-color: #F97316;
+}
+
+.select-icon {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #A8A29E;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+/* Form Row */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 480px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
 .toggle-password {
   position: absolute;
   right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
   background: none;
   border: none;
   color: #A8A29E;
   cursor: pointer;
   padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .toggle-password:hover {
@@ -209,7 +279,7 @@
 .banner-feature {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
   padding: 16px 24px;
   background: rgba(255, 255, 255, 0.15);
   border-radius: 12px;
@@ -217,8 +287,20 @@
   font-weight: 500;
 }
 
-.feature-icon {
-  font-size: 24px;
+.feature-icon-wrap {
+  width: 44px;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.banner-feature span {
+  flex: 1;
+  text-align: left;
 }
 
 /* Responsive */

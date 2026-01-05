@@ -4,7 +4,7 @@
 
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, Phone, Mail, ArrowRight, Loader2, ChevronDown } from 'lucide-react';
+import { User, Phone, Mail, ArrowRight, Loader2, ChevronDown, BookOpen, Target, Trophy } from 'lucide-react';
 import { authApi, contentApi } from '../services/api';
 import { useAuthStore } from '../store/authStore';
 import toast from 'react-hot-toast';
@@ -141,7 +141,9 @@ export function Register() {
               <div className="form-group">
                 <label>Full Name *</label>
                 <div className="input-wrapper">
-                  <User size={20} className="input-icon" />
+                  <div className="input-icon">
+                    <User size={20} />
+                  </div>
                   <input
                     type="text"
                     name="fullName"
@@ -158,7 +160,9 @@ export function Register() {
               <div className="form-group">
                 <label>Phone Number *</label>
                 <div className="input-wrapper">
-                  <Phone size={20} className="input-icon" />
+                  <div className="input-icon">
+                    <Phone size={20} />
+                  </div>
                   <input
                     type="tel"
                     name="phone"
@@ -173,7 +177,9 @@ export function Register() {
               <div className="form-group">
                 <label>Email (Optional)</label>
                 <div className="input-wrapper">
-                  <Mail size={20} className="input-icon" />
+                  <div className="input-icon">
+                    <Mail size={20} />
+                  </div>
                   <input
                     type="email"
                     name="email"
@@ -195,7 +201,9 @@ export function Register() {
                       <option key={board.id} value={board.id}>{board.name}</option>
                     ))}
                   </select>
-                  <ChevronDown size={20} className="select-icon" />
+                  <div className="select-icon">
+                    <ChevronDown size={20} />
+                  </div>
                 </div>
               </div>
               <div className="form-group">
@@ -207,7 +215,9 @@ export function Register() {
                       <option key={cls.id} value={cls.id}>{cls.displayName}</option>
                     ))}
                   </select>
-                  <ChevronDown size={20} className="select-icon" />
+                  <div className="select-icon">
+                    <ChevronDown size={20} />
+                  </div>
                 </div>
               </div>
             </div>
@@ -254,15 +264,21 @@ export function Register() {
           <p>Learning smarter with AI-powered education</p>
           <div className="banner-features">
             <div className="banner-feature">
-              <span className="feature-icon">📚</span>
+              <div className="feature-icon-wrap">
+                <BookOpen size={24} />
+              </div>
               <span>All Subjects Covered</span>
             </div>
             <div className="banner-feature">
-              <span className="feature-icon">🎯</span>
+              <div className="feature-icon-wrap">
+                <Target size={24} />
+              </div>
               <span>Personalized Learning</span>
             </div>
             <div className="banner-feature">
-              <span className="feature-icon">🏆</span>
+              <div className="feature-icon-wrap">
+                <Trophy size={24} />
+              </div>
               <span>Gamified Experience</span>
             </div>
           </div>

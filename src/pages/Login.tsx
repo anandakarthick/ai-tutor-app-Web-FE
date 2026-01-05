@@ -4,7 +4,7 @@
 
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Phone, Lock, Eye, EyeOff, ArrowRight, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, ArrowRight, Loader2, Brain, MessageCircle, BarChart3 } from 'lucide-react';
 import { authApi } from '../services/api';
 import { useAuthStore } from '../store/authStore';
 import toast from 'react-hot-toast';
@@ -91,13 +91,13 @@ export function Login() {
             <div className="form-group">
               <label>Phone Number</label>
               <div className="input-wrapper">
-                <Phone size={20} className="input-icon" />
                 <input
                   type="tel"
                   placeholder="Enter your phone number"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
                   maxLength={10}
+                  className="input-no-icon"
                 />
               </div>
             </div>
@@ -119,13 +119,13 @@ export function Login() {
               <label>Enter OTP</label>
               <p className="otp-sent-text">OTP sent to +91 {phone}</p>
               <div className="input-wrapper">
-                <Lock size={20} className="input-icon" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   placeholder="Enter 6-digit OTP"
                   value={otp}
                   onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
                   maxLength={6}
+                  className="input-no-icon input-with-toggle"
                 />
                 <button
                   type="button"
@@ -169,15 +169,21 @@ export function Login() {
           <p>Personalized education that adapts to your learning style</p>
           <div className="banner-features">
             <div className="banner-feature">
-              <span className="feature-icon">🤖</span>
+              <div className="feature-icon-wrap">
+                <Brain size={24} />
+              </div>
               <span>AI-Powered Teaching</span>
             </div>
             <div className="banner-feature">
-              <span className="feature-icon">💬</span>
+              <div className="feature-icon-wrap">
+                <MessageCircle size={24} />
+              </div>
               <span>Instant Doubt Resolution</span>
             </div>
             <div className="banner-feature">
-              <span className="feature-icon">📊</span>
+              <div className="feature-icon-wrap">
+                <BarChart3 size={24} />
+              </div>
               <span>Progress Tracking</span>
             </div>
           </div>

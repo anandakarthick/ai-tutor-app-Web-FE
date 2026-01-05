@@ -21,6 +21,12 @@ import {
   Progress,
   Profile,
   StudyPlan,
+  AboutUs,
+  Careers,
+  Blog,
+  HelpCenter,
+  ContactUs,
+  PrivacyPolicy,
 } from './pages';
 import { useAuthStore } from './store/authStore';
 import { isAuthenticated } from './services/api';
@@ -96,6 +102,14 @@ function App() {
       <Routes>
         {/* Landing Page */}
         <Route path="/" element={<Landing />} />
+
+        {/* Static Pages */}
+        <Route path="/about" element={<AboutUs />} />
+        <Route path="/careers" element={<Careers />} />
+        <Route path="/blog" element={<Blog />} />
+        <Route path="/help" element={<HelpCenter />} />
+        <Route path="/contact" element={<ContactUs />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
 
         {/* Public Routes */}
         <Route

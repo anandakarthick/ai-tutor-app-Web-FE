@@ -527,15 +527,15 @@ export function Landing() {
             </div>
             <div className="footer-column">
               <h4>Company</h4>
-              <a href="#">About Us</a>
-              <a href="#">Careers</a>
-              <a href="#">Blog</a>
+              <Link to="/about">About Us</Link>
+              <Link to="/careers">Careers</Link>
+              <Link to="/blog">Blog</Link>
             </div>
             <div className="footer-column">
               <h4>Support</h4>
-              <a href="#">Help Center</a>
-              <a href="#">Contact Us</a>
-              <a href="#">Privacy Policy</a>
+              <Link to="/help">Help Center</Link>
+              <Link to="/contact">Contact Us</Link>
+              <Link to="/privacy">Privacy Policy</Link>
             </div>
           </div>
         </div>
