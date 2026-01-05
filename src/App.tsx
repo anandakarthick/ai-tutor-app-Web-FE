@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-route
 import { Toaster } from 'react-hot-toast';
 import { Layout } from './components';
 import {
+  Landing,
   Dashboard,
   Login,
   Register,
@@ -93,6 +94,9 @@ function App() {
       />
 
       <Routes>
+        {/* Landing Page */}
+        <Route path="/" element={<Landing />} />
+
         {/* Public Routes */}
         <Route
           path="/login"
@@ -201,9 +205,8 @@ function App() {
           }
         />
 
-        {/* Default Redirect */}
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        {/* 404 - Redirect to Landing */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );
