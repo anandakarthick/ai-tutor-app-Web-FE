@@ -23,6 +23,7 @@ import {
   Loader2,
   Check,
   Sparkles,
+  PartyPopper,
 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { subscriptionApi, paymentsApi } from '../services/api';
@@ -91,9 +92,13 @@ export function Subscription() {
   const [transactions, setTransactions] = useState<Payment[]>([]);
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [loading, setLoading] = useState(true);
-  const [processingPayment, setProcessingPayment] = useState(false);
+  const [processingPlanId, setProcessingPlanId] = useState<string | null>(null);
   const [selectedTransaction, setSelectedTransaction] = useState<Payment | null>(null);
   const [activeTab, setActiveTab] = useState<'plan' | 'transactions'>('plan');
+  
+  // Success modal state
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [purchasedPlan, setPurchasedPlan] = useState<SubscriptionPlan | null>(null);
 
   useEffect(() => {
     loadRazorpayScript();
@@ -135,7 +140,7 @@ export function Subscription() {
       return;
     }
 
-    setProcessingPayment(true);
+    setProcessingPlanId(plan.id);
 
     try {
       // Create order
@@ -169,7 +174,9 @@ export function Subscription() {
             });
 
             if (verifyRes.success) {
-              toast.success('Payment successful! Your subscription is now active.');
+              // Show success modal instead of toast
+              setPurchasedPlan(plan);
+              setShowSuccessModal(true);
               loadData(); // Reload data
             } else {
               toast.error('Payment verification failed');
@@ -178,7 +185,7 @@ export function Subscription() {
             console.error('Verification error:', error);
             toast.error('Payment verification failed');
           }
-          setProcessingPayment(false);
+          setProcessingPlanId(null);
         },
         prefill: {
           name: user?.fullName || '',
@@ -190,7 +197,7 @@ export function Subscription() {
         },
         modal: {
           ondismiss: () => {
-            setProcessingPayment(false);
+            setProcessingPlanId(null);
           },
         },
       };
@@ -200,8 +207,13 @@ export function Subscription() {
     } catch (error: any) {
       console.error('Payment error:', error);
       toast.error(error.message || 'Failed to initiate payment');
-      setProcessingPayment(false);
+      setProcessingPlanId(null);
     }
+  };
+
+  const handleSuccessModalClose = () => {
+    setShowSuccessModal(false);
+    setPurchasedPlan(null);
   };
 
   const formatDate = (dateStr: string) => {
@@ -409,9 +421,9 @@ export function Subscription() {
                   <button 
                     className={`subscribe-btn ${plan.isPopular ? 'primary' : ''}`}
                     onClick={() => handleSubscribe(plan)}
-                    disabled={processingPayment}
+                    disabled={processingPlanId !== null}
                   >
-                    {processingPayment ? (
+                    {processingPlanId === plan.id ? (
                       <>
                         <Loader2 size={18} className="spinner" />
                         <span>Processing...</span>
@@ -559,6 +571,80 @@ export function Subscription() {
                 Close
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Payment Success Modal */}
+      {showSuccessModal && (
+        <div className="modal-overlay success-modal-overlay" onClick={handleSuccessModalClose}>
+          <div className="success-modal" onClick={e => e.stopPropagation()}>
+            {/* Confetti Effect */}
+            <div className="confetti-container">
+              {[...Array(20)].map((_, i) => (
+                <div key={i} className={`confetti confetti-${i % 5}`} style={{ left: `${Math.random() * 100}%`, animationDelay: `${Math.random() * 2}s` }} />
+              ))}
+            </div>
+
+            {/* Success Icon */}
+            <div className="success-icon-container">
+              <div className="success-icon-bg">
+                <span className="success-emoji">🎉</span>
+              </div>
+              <div className="success-rings">
+                <div className="ring ring-1"></div>
+                <div className="ring ring-2"></div>
+                <div className="ring ring-3"></div>
+              </div>
+            </div>
+
+            {/* Success Text */}
+            <h2 className="success-title">Payment Successful!</h2>
+            <p className="success-subtitle">Welcome to {purchasedPlan?.displayName || 'Premium'}!</p>
+
+            {/* Plan Details Card */}
+            <div className="success-plan-card">
+              <div className="success-plan-icon">
+                <Crown size={28} />
+              </div>
+              <div className="success-plan-info">
+                <h4>{purchasedPlan?.displayName || 'Premium Plan'}</h4>
+                <p>
+                  {purchasedPlan ? formatCurrency(purchasedPlan.price) : ''} / 
+                  {purchasedPlan?.durationMonths === 1 ? ' month' : ` ${purchasedPlan?.durationMonths} months`}
+                </p>
+              </div>
+              <div className="success-plan-check">
+                <CheckCircle size={28} />
+              </div>
+            </div>
+
+            {/* Features */}
+            <div className="success-features">
+              <div className="success-feature">
+                <Check size={18} />
+                <span>Unlimited access to all subjects</span>
+              </div>
+              <div className="success-feature">
+                <Check size={18} />
+                <span>AI-powered personalized learning</span>
+              </div>
+              <div className="success-feature">
+                <Check size={18} />
+                <span>Instant doubt resolution</span>
+              </div>
+              <div className="success-feature">
+                <Check size={18} />
+                <span>Progress tracking & analytics</span>
+              </div>
+            </div>
+
+            {/* CTA Button */}
+            <button className="success-cta-btn" onClick={handleSuccessModalClose}>
+              <Sparkles size={20} />
+              <span>Start Learning!</span>
+              <span className="rocket">🚀</span>
+            </button>
           </div>
         </div>
       )}
