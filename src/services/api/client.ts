@@ -31,6 +31,8 @@ let handshakePromise: Promise<boolean> | null = null;
 const UNENCRYPTED_ENDPOINTS = [
   '/auth/handshake',
   '/auth/public-key',
+  '/payments', // Payment routes - skip encryption
+  '/subscriptions', // Subscription routes - skip encryption
 ];
 
 // Create axios instance
