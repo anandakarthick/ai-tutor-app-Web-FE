@@ -365,7 +365,7 @@ export function Subscription() {
           {/* Available Plans */}
           <div className="available-plans">
             <h3>{activeSubscription ? 'Upgrade Your Plan' : 'Choose Your Plan'}</h3>
-            <div className="plans-grid two-plans">
+            <div className="plans-grid">
               {plans.map((plan) => (
                 <div key={plan.id} className={`plan-card ${plan.isPopular ? 'popular' : ''}`}>
                   {plan.isPopular && (
@@ -398,9 +398,9 @@ export function Subscription() {
                   )}
 
                   <ul className="plan-features-list">
-                    {plan.features?.slice(0, 6).map((feature, index) => (
+                    {plan.features?.slice(0, 4).map((feature, index) => (
                       <li key={index}>
-                        <Check size={16} />
+                        <Check size={14} />
                         <span>{feature}</span>
                       </li>
                     ))}

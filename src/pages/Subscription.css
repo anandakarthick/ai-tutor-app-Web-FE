@@ -219,20 +219,20 @@
 
 .plans-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
 }
 
 .plans-grid.two-plans {
   grid-template-columns: repeat(2, 1fr);
-  max-width: 800px;
+  max-width: 480px;
   margin: 0 auto;
 }
 
 .plan-card {
   background: white;
-  border-radius: 20px;
-  padding: 28px;
+  border-radius: 16px;
+  padding: 20px;
   border: 2px solid #E5E7EB;
   transition: all 0.3s;
   position: relative;
@@ -242,74 +242,74 @@
 
 .plan-card:hover {
   border-color: #F97316;
-  box-shadow: 0 12px 32px rgba(249, 115, 22, 0.15);
-  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(249, 115, 22, 0.12);
+  transform: translateY(-2px);
 }
 
 .plan-card.popular {
   border-color: #F97316;
-  box-shadow: 0 8px 24px rgba(249, 115, 22, 0.2);
+  box-shadow: 0 4px 16px rgba(249, 115, 22, 0.15);
 }
 
 .popular-badge {
   position: absolute;
-  top: -12px;
+  top: -10px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 18px;
+  gap: 4px;
+  padding: 5px 12px;
   background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);
   color: white;
-  border-radius: 20px;
-  font-size: 13px;
+  border-radius: 12px;
+  font-size: 11px;
   font-weight: 600;
   white-space: nowrap;
 }
 
 .plan-card-header {
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 12px;
 }
 
 .plan-card h4 {
-  font-size: 22px;
+  font-size: 16px;
   font-weight: 700;
   color: #111827;
-  margin: 0 0 8px 0;
+  margin: 0 0 4px 0;
 }
 
 .plan-card .plan-desc {
-  font-size: 14px;
+  font-size: 12px;
   color: #6B7280;
   margin: 0;
-  line-height: 1.5;
+  line-height: 1.4;
 }
 
 .plan-pricing {
   text-align: center;
-  margin-bottom: 16px;
-  padding: 20px 0;
+  margin-bottom: 12px;
+  padding: 12px 0;
   border-top: 1px solid #F3F4F6;
   border-bottom: 1px solid #F3F4F6;
 }
 
 .plan-pricing .original-price {
-  font-size: 16px;
+  font-size: 13px;
   color: #9CA3AF;
   text-decoration: line-through;
-  margin-right: 8px;
+  margin-right: 6px;
 }
 
 .plan-pricing .current-price {
-  font-size: 36px;
+  font-size: 28px;
   font-weight: 800;
   color: #111827;
 }
 
 .plan-pricing .duration {
-  font-size: 16px;
+  font-size: 13px;
   color: #6B7280;
   font-weight: 500;
 }
@@ -318,29 +318,29 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 10px 16px;
+  gap: 4px;
+  padding: 6px 10px;
   background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
   color: #B45309;
-  border-radius: 10px;
-  font-size: 14px;
+  border-radius: 8px;
+  font-size: 11px;
   font-weight: 600;
-  margin-bottom: 20px;
+  margin-bottom: 12px;
 }
 
 .plan-features-list {
   list-style: none;
   padding: 0;
-  margin: 0 0 24px 0;
+  margin: 0 0 16px 0;
   flex: 1;
 }
 
 .plan-features-list li {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
-  padding: 10px 0;
-  font-size: 14px;
+  gap: 6px;
+  padding: 6px 0;
+  font-size: 12px;
   color: #374151;
   border-bottom: 1px solid #F9FAFB;
 }
@@ -352,7 +352,9 @@
 .plan-features-list li svg {
   color: #22C55E;
   flex-shrink: 0;
-  margin-top: 2px;
+  width: 14px;
+  height: 14px;
+  margin-top: 1px;
 }
 
 .subscribe-btn {
@@ -360,12 +362,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  padding: 16px;
+  gap: 6px;
+  padding: 12px;
   background: #F3F4F6;
   border: none;
-  border-radius: 14px;
-  font-size: 16px;
+  border-radius: 10px;
+  font-size: 14px;
   font-weight: 600;
   color: #374151;
   cursor: pointer;
@@ -383,7 +385,7 @@
 
 .subscribe-btn.primary:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(249, 115, 22, 0.3);
+  box-shadow: 0 6px 16px rgba(249, 115, 22, 0.25);
 }
 
 .subscribe-btn:disabled {
@@ -713,6 +715,12 @@
 }
 
 /* Responsive */
+@media (max-width: 1024px) {
+  .plans-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 @media (max-width: 768px) {
   .subscription-page {
     padding: 16px;
@@ -742,6 +750,7 @@
   .plans-grid,
   .plans-grid.two-plans {
     grid-template-columns: 1fr;
+    max-width: 100%;
   }
 
   .trust-badges {
