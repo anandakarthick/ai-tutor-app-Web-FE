@@ -15,13 +15,22 @@ export const studyPlansApi = {
 
   generate: async (data: {
     studentId: string;
-    subjectIds: string[];
+    subjectIds?: string[];
     dailyHours: number;
     targetExam?: string;
     startDate?: string;
     endDate?: string;
   }) => {
-    const response = await apiClient.post(ENDPOINTS.STUDY_PLANS.GENERATE, data);
+    // Map subjectIds to targetSubjects for backend
+    const payload = {
+      studentId: data.studentId,
+      targetSubjects: data.subjectIds,
+      dailyHours: data.dailyHours,
+      targetExam: data.targetExam,
+      startDate: data.startDate,
+      endDate: data.endDate,
+    };
+    const response = await apiClient.post(ENDPOINTS.STUDY_PLANS.GENERATE, payload);
     return response.data;
   },
 
