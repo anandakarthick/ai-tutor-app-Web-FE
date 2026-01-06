@@ -4,7 +4,7 @@
 
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, Phone, Mail, ArrowRight, Loader2, ChevronDown, BookOpen, Target, Trophy } from 'lucide-react';
+import { ArrowRight, Loader2, ChevronDown, BookOpen, Target, Trophy } from 'lucide-react';
 import { authApi, contentApi, setAuthTokens, setStoredUser, setStoredStudent } from '../services/api';
 import { useAuthStore } from '../store/authStore';
 import toast from 'react-hot-toast';
@@ -156,9 +156,6 @@ export function Register() {
               <div className="form-group">
                 <label>Full Name *</label>
                 <div className="input-wrapper">
-                  <div className="input-icon">
-                    <User size={20} />
-                  </div>
                   <input
                     type="text"
                     name="fullName"
@@ -166,6 +163,7 @@ export function Register() {
                     value={formData.fullName}
                     onChange={handleChange}
                     required
+                    className="input-no-icon"
                   />
                 </div>
               </div>
@@ -175,9 +173,6 @@ export function Register() {
               <div className="form-group">
                 <label>Phone Number *</label>
                 <div className="input-wrapper">
-                  <div className="input-icon">
-                    <Phone size={20} />
-                  </div>
                   <input
                     type="tel"
                     name="phone"
@@ -186,21 +181,20 @@ export function Register() {
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
                     maxLength={10}
                     required
+                    className="input-no-icon"
                   />
                 </div>
               </div>
               <div className="form-group">
                 <label>Email (Optional)</label>
                 <div className="input-wrapper">
-                  <div className="input-icon">
-                    <Mail size={20} />
-                  </div>
                   <input
                     type="email"
                     name="email"
                     placeholder="your@email.com"
                     value={formData.email}
                     onChange={handleChange}
+                    className="input-no-icon"
                   />
                 </div>
               </div>
