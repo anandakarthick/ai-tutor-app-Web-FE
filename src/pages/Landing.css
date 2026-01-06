@@ -734,9 +734,11 @@
 
 .pricing-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--space-lg);
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-xl);
   align-items: start;
+  max-width: 800px;
+  margin: 0 auto;
 }
 
 .pricing-card {
@@ -755,15 +757,43 @@
 
 .popular-badge {
   position: absolute;
-  top: -12px;
+  top: -14px;
   left: 50%;
   transform: translateX(-50%);
-  padding: 6px 16px;
-  background: var(--primary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
   color: white;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   border-radius: 100px;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+}
+
+.plan-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin-bottom: var(--space-md);
+}
+
+.plan-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.1), rgba(251, 146, 60, 0.1));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+}
+
+.pricing-card.popular .plan-icon {
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  color: white;
 }
 
 .pricing-card h3 {
@@ -786,6 +816,53 @@
 .pricing-price .period {
   font-size: 16px;
   color: var(--text-secondary);
+}
+
+.pricing-price .original-price {
+  font-size: 18px;
+  color: var(--text-muted);
+  text-decoration: line-through;
+  margin-right: var(--space-sm);
+}
+
+.savings-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: 10px var(--space-md);
+  background: rgba(245, 158, 11, 0.1);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-lg);
+}
+
+.savings-badge svg {
+  color: var(--warning);
+}
+
+.savings-badge span {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--warning);
+}
+
+.trust-badges {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-2xl);
+  margin-top: var(--space-2xl);
+}
+
+.trust-badge {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.trust-badge svg {
+  color: var(--success);
 }
 
 .pricing-description {
@@ -973,13 +1050,17 @@
 
   .pricing-grid {
     grid-template-columns: 1fr;
-    max-width: 400px;
-    margin: 0 auto;
+    max-width: 420px;
   }
 
   .pricing-card.popular {
     transform: none;
     order: -1;
+  }
+
+  .trust-badges {
+    flex-wrap: wrap;
+    gap: var(--space-lg);
   }
 
   .footer-container {
@@ -1139,5 +1220,31 @@
 
   .btn:active {
     transform: scale(0.98);
+  }
+}
+
+/* Plans Loading State */
+.plans-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  gap: 16px;
+}
+
+.plans-loading .spinner {
+  color: var(--primary);
+  animation: spin 1s linear infinite;
+}
+
+.plans-loading p {
+  color: var(--text-secondary);
+  font-size: 16px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
 }

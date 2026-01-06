@@ -39,7 +39,11 @@ import {
   GraduationCap,
   Lightbulb,
   CheckCircle,
+  Loader2,
+  Gift,
+  Crown,
 } from 'lucide-react';
+import { subscriptionApi } from '../services/api';
 import logoImage from '../assets/images/logo.png';
 import './Landing.css';
 
@@ -117,55 +121,6 @@ const testimonials = [
   },
 ];
 
-const pricingPlans = [
-  {
-    name: 'Free',
-    price: '₹0',
-    period: 'Forever',
-    description: 'Get started with basic features',
-    features: [
-      '5 AI lessons per day',
-      '10 doubt questions per day',
-      'Basic progress tracking',
-      '2 subjects access',
-    ],
-    cta: 'Start Free',
-    popular: false,
-  },
-  {
-    name: 'Pro',
-    price: '₹299',
-    period: 'per month',
-    description: 'Everything you need to excel',
-    features: [
-      'Unlimited AI lessons',
-      'Unlimited doubt questions',
-      'All subjects access',
-      'Detailed analytics',
-      'Personalized study plans',
-      'Priority support',
-    ],
-    cta: 'Get Pro',
-    popular: true,
-  },
-  {
-    name: 'Annual',
-    price: '₹1999',
-    period: 'per year',
-    description: 'Best value - Save 44%',
-    features: [
-      'Everything in Pro',
-      'Family sharing (up to 3)',
-      'Offline mode',
-      'Early access to new features',
-      '1-on-1 doubt sessions',
-      'Certificate of completion',
-    ],
-    cta: 'Get Annual',
-    popular: false,
-  },
-];
-
 const steps = [
   { number: '01', title: 'Sign Up', description: 'Create your free account in seconds', icon: Users },
   { number: '02', title: 'Choose Subject', description: 'Select from CBSE, ICSE, or State boards', icon: BookOpen },
@@ -176,6 +131,8 @@ const steps = [
 export function Landing() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [plans, setPlans] = useState<any[]>([]);
+  const [loadingPlans, setLoadingPlans] = useState(true);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -194,6 +151,95 @@ export function Landing() {
     }
   }, [mobileMenuOpen]);
 
+  // Fetch subscription plans
+  useEffect(() => {
+    const fetchPlans = async () => {
+      try {
+        setLoadingPlans(true);
+        const response = await subscriptionApi.getPlans();
+        if (response.success && response.data) {
+          // Sort plans: monthly first (durationMonths = 1), then yearly (durationMonths = 12)
+          const sortedPlans = response.data.sort((a: any, b: any) => {
+            return (a.durationMonths || 1) - (b.durationMonths || 12);
+          });
+          setPlans(sortedPlans);
+        }
+      } catch (error) {
+        console.error('Failed to fetch plans:', error);
+        // Fallback plans if API fails
+        setPlans([
+          {
+            id: 'monthly',
+            name: 'Monthly',
+            displayName: 'Monthly Plan',
+            price: 299,
+            originalPrice: 399,
+            durationMonths: 1,
+            description: 'Perfect for trying out our platform',
+            isPopular: false,
+            features: [
+              'Unlimited access to all subjects',
+              'AI-powered personalized learning',
+              'Instant doubt resolution',
+              'Progress tracking & analytics',
+              'Quizzes & assessments',
+              'Study plan generation',
+            ],
+          },
+          {
+            id: 'yearly',
+            name: 'Yearly',
+            displayName: 'Yearly Plan',
+            price: 3000,
+            originalPrice: 3588,
+            durationMonths: 12,
+            description: 'Best value! Save ₹588 with annual subscription',
+            isPopular: true,
+            features: [
+              'Everything in Monthly Plan',
+              'Priority AI responses',
+              'Extended AI usage (120 min/day)',
+              'Detailed performance reports',
+              'Parent dashboard access',
+              'Offline content download',
+              'Certificate of completion',
+            ],
+          },
+        ]);
+      } finally {
+        setLoadingPlans(false);
+      }
+    };
+
+    fetchPlans();
+  }, []);
+
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(price);
+  };
+
+  // Calculate yearly savings (Monthly price * 12 - Yearly price)
+  const calculateSavings = () => {
+    const monthlyPlan = plans.find(p => p.durationMonths === 1);
+    const yearlyPlan = plans.find(p => p.durationMonths === 12);
+    if (!monthlyPlan || !yearlyPlan) return 0;
+    return (monthlyPlan.price * 12) - yearlyPlan.price;
+  };
+
+  const savings = calculateSavings();
+
+  // Get period text based on duration
+  const getPeriodText = (durationMonths: number) => {
+    if (durationMonths === 1) return 'month';
+    if (durationMonths === 12) return 'year';
+    return `${durationMonths} months`;
+  };
+
   return (
     <div className="landing-page">
       {/* Navigation */}
@@ -208,7 +254,7 @@ export function Landing() {
             <a href="#features" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Features</a>
             <a href="#how-it-works" className="nav-link" onClick={() => setMobileMenuOpen(false)}>How it Works</a>
             <a href="#subjects" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Subjects</a>
-            <a href="#pricing" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Pricing</a>
+            <a href="#study-plans" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Study Plans</a>
             
             <div className="mobile-nav-buttons">
               <Link to="/login" className="btn btn-outline" style={{width: '100%'}}>Login</Link>
@@ -453,37 +499,103 @@ export function Landing() {
         </div>
       </section>
 
-      {/* Pricing Section */}
-      <section id="pricing" className="pricing">
+      {/* Study Plans Section */}
+      <section id="study-plans" className="pricing">
         <div className="section-container">
           <div className="section-header">
-            <span className="section-badge">Pricing</span>
-            <h2>Simple, Transparent Pricing</h2>
-            <p>Choose the plan that's right for you</p>
+            <span className="section-badge">Study Plans</span>
+            <h2>Choose Your Learning Journey</h2>
+            <p>Flexible plans designed for every learner</p>
           </div>
-          <div className="pricing-grid">
-            {pricingPlans.map((plan, index) => (
-              <div key={index} className={`pricing-card ${plan.popular ? 'popular' : ''}`}>
-                {plan.popular && <div className="popular-badge">Most Popular</div>}
-                <h3>{plan.name}</h3>
-                <div className="pricing-price">
-                  <span className="price">{plan.price}</span>
-                  <span className="period">{plan.period}</span>
-                </div>
-                <p className="pricing-description">{plan.description}</p>
-                <ul className="pricing-features">
-                  {plan.features.map((feature, i) => (
-                    <li key={i}>
-                      <CheckCircle size={18} />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-                <Link to="/register" className={`btn ${plan.popular ? 'btn-primary' : 'btn-outline'} btn-full`}>
-                  {plan.cta}
-                </Link>
-              </div>
-            ))}
+          
+          {loadingPlans ? (
+            <div className="plans-loading">
+              <Loader2 size={40} className="spinner" />
+              <p>Loading plans...</p>
+            </div>
+          ) : (
+            <div className="pricing-grid">
+              {plans.map((plan, index) => {
+                const isYearly = plan.durationMonths === 12;
+                const isPopular = plan.isPopular || isYearly;
+                
+                return (
+                  <div key={plan.id || index} className={`pricing-card ${isPopular ? 'popular' : ''}`}>
+                    {/* Most Recommended Badge for Yearly */}
+                    {isPopular && (
+                      <div className="popular-badge">
+                        <Star size={14} />
+                        Most Recommended
+                      </div>
+                    )}
+                    
+                    {/* Plan Header with Icon */}
+                    <div className="plan-header">
+                      <div className="plan-icon">
+                        <Crown size={24} />
+                      </div>
+                      <h3>{plan.displayName || plan.name}</h3>
+                    </div>
+                    
+                    {/* Pricing */}
+                    <div className="pricing-price">
+                      {plan.originalPrice && plan.originalPrice > plan.price && (
+                        <span className="original-price">{formatPrice(plan.originalPrice)}</span>
+                      )}
+                      <span className="price">{formatPrice(plan.price)}</span>
+                      <span className="period">/{getPeriodText(plan.durationMonths)}</span>
+                    </div>
+                    
+                    {/* Description */}
+                    <p className="pricing-description">
+                      {plan.description || (isYearly 
+                        ? 'Best value for serious learners' 
+                        : 'Everything you need to excel')}
+                    </p>
+
+                    {/* Savings Badge for Yearly Plan */}
+                    {isYearly && savings > 0 && (
+                      <div className="savings-badge">
+                        <Gift size={16} />
+                        <span>Save {formatPrice(savings)}/year</span>
+                      </div>
+                    )}
+                    
+                    {/* Features List */}
+                    <ul className="pricing-features">
+                      {(plan.features || []).slice(0, 6).map((feature: string, i: number) => (
+                        <li key={i}>
+                          <CheckCircle size={18} />
+                          {feature}
+                        </li>
+                      ))}
+                    </ul>
+                    
+                    {/* Subscribe Button */}
+                    <Link to="/register" className={`btn ${isPopular ? 'btn-primary' : 'btn-outline'} btn-full`}>
+                      <Zap size={18} />
+                      Subscribe Now
+                    </Link>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Trust Badges */}
+          <div className="trust-badges">
+            <div className="trust-badge">
+              <Shield size={20} />
+              <span>Secure Payments</span>
+            </div>
+            <div className="trust-badge">
+              <TrendingUp size={20} />
+              <span>Cancel Anytime</span>
+            </div>
+            <div className="trust-badge">
+              <Award size={20} />
+              <span>100% Satisfaction</span>
+            </div>
           </div>
         </div>
       </section>
@@ -523,7 +635,7 @@ export function Landing() {
               <h4>Product</h4>
               <a href="#features">Features</a>
               <a href="#subjects">Subjects</a>
-              <a href="#pricing">Pricing</a>
+              <a href="#study-plans">Study Plans</a>
             </div>
             <div className="footer-column">
               <h4>Company</h4>
