@@ -4,7 +4,7 @@
 
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, Loader2, ChevronDown, BookOpen, Target, Trophy } from 'lucide-react';
+import { ArrowRight, Loader2, ChevronDown, BookOpen, Target, Trophy, Home } from 'lucide-react';
 import { authApi, contentApi, setAuthTokens, setStoredUser, setStoredStudent } from '../services/api';
 import { useAuthStore } from '../store/authStore';
 import toast from 'react-hot-toast';
@@ -145,6 +145,10 @@ export function Register() {
     <div className="auth-page">
       <div className="auth-container" style={{ maxWidth: 520 }}>
         <div className="auth-header">
+          <Link to="/" className="home-link">
+            <Home size={20} />
+            <span>Home</span>
+          </Link>
           <img src={logoImage} alt="AI Tutor" className="auth-logo" />
           <h1>Create Account</h1>
           <p>Start your learning journey today</p>

@@ -18,6 +18,30 @@
 .auth-header {
   text-align: center;
   margin-bottom: 32px;
+  position: relative;
+}
+
+.home-link {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: #FFF7ED;
+  border: 1px solid #FFEDD5;
+  border-radius: 20px;
+  color: #F97316;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.home-link:hover {
+  background: #FFEDD5;
+  transform: translateY(-1px);
 }
 
 .auth-logo {

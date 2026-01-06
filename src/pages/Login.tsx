@@ -4,7 +4,7 @@
 
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, ArrowRight, Loader2, Brain, MessageCircle, BarChart3 } from 'lucide-react';
+import { Eye, EyeOff, ArrowRight, Loader2, Brain, MessageCircle, BarChart3, Home } from 'lucide-react';
 import { authApi, setAuthTokens, setStoredUser, setStoredStudent } from '../services/api';
 import { useAuthStore } from '../store/authStore';
 import toast from 'react-hot-toast';
@@ -95,6 +95,10 @@ export function Login() {
     <div className="auth-page">
       <div className="auth-container">
         <div className="auth-header">
+          <Link to="/" className="home-link">
+            <Home size={20} />
+            <span>Home</span>
+          </Link>
           <img src={logoImage} alt="AI Tutor" className="auth-logo" />
           <h1>Welcome Back!</h1>
           <p>Sign in to continue your learning journey</p>
