@@ -35,10 +35,12 @@ interface AuthState {
   student: Student | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  sessionTerminated: boolean;
   
   // Actions
   setUser: (user: User | null) => void;
   setStudent: (student: Student | null) => void;
+  setSessionTerminated: (terminated: boolean) => void;
   login: (phone: string, otp: string) => Promise<void>;
   loginWithPassword: (email: string, password: string) => Promise<void>;
   register: (data: any) => Promise<void>;
@@ -54,6 +56,7 @@ export const useAuthStore = create<AuthState>()(
       student: null,
       isAuthenticated: false,
       isLoading: false,
+      sessionTerminated: false,
 
       setUser: (user) => {
         set({ user, isAuthenticated: !!user });
@@ -66,6 +69,13 @@ export const useAuthStore = create<AuthState>()(
         set({ student });
         if (student) {
           setStoredStudent(student);
+        }
+      },
+
+      setSessionTerminated: (terminated) => {
+        set({ sessionTerminated: terminated });
+        if (terminated) {
+          set({ user: null, student: null, isAuthenticated: false });
         }
       },
 
@@ -166,7 +176,7 @@ export const useAuthStore = create<AuthState>()(
           console.error('Logout API error:', error);
         }
         clearAuthTokens();
-        set({ user: null, student: null, isAuthenticated: false });
+        set({ user: null, student: null, isAuthenticated: false, sessionTerminated: false });
       },
 
       loadStoredAuth: () => {

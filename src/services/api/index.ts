@@ -15,6 +15,7 @@ export {
   initializeEncryption,
   isEncryptionReady,
   getEncryptionStatus,
+  setSessionTerminatedCallback,
 } from './client';
 
 export { authApi } from './auth';

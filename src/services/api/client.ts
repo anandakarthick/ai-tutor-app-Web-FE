@@ -21,6 +21,13 @@ export const STORAGE_KEYS = {
   ENCRYPTION_ENABLED: 'encryptionEnabled',
 };
 
+// Session terminated callback
+let onSessionTerminated: (() => void) | null = null;
+
+export const setSessionTerminatedCallback = (callback: () => void) => {
+  onSessionTerminated = callback;
+};
+
 // Encryption state
 let isEncryptionEnabled = false;
 let isHandshakeComplete = false;
@@ -311,7 +318,14 @@ apiClient.interceptors.response.use(
       const skipRefreshCodes = ['SESSION_TERMINATED', 'INVALID_TOKEN', 'NO_TOKEN'];
       if (skipRefreshCodes.includes(error.response?.data?.code || '')) {
         clearAuthTokens();
-        window.location.href = '/login';
+        
+        // If session terminated, call the callback instead of redirecting
+        if (error.response?.data?.code === 'SESSION_TERMINATED' && onSessionTerminated) {
+          console.log('🚫 Session terminated - calling callback');
+          onSessionTerminated();
+        } else {
+          window.location.href = '/login';
+        }
         return Promise.reject(error);
       }
 

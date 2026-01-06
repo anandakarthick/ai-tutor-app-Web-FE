@@ -5,7 +5,7 @@
 import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
-import { Layout } from './components';
+import { Layout, SessionTerminatedModal } from './components';
 import {
   Landing,
   Dashboard,
@@ -30,7 +30,7 @@ import {
   PrivacyPolicy,
 } from './pages';
 import { useAuthStore } from './store/authStore';
-import { initializeEncryption, getEncryptionStatus } from './services/api';
+import { initializeEncryption, getEncryptionStatus, setSessionTerminatedCallback } from './services/api';
 import { encryptionDebug } from './services/encryption';
 import './App.css';
 
@@ -76,8 +76,22 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
 }
 
 function App() {
-  const { loadStoredAuth, fetchStudents, student, isAuthenticated } = useAuthStore();
+  const { loadStoredAuth, fetchStudents, student, isAuthenticated, sessionTerminated, setSessionTerminated } = useAuthStore();
   const [isInitialized, setIsInitialized] = useState(false);
+
+  // Set up session terminated callback
+  useEffect(() => {
+    setSessionTerminatedCallback(() => {
+      console.log('🚫 Session terminated - showing modal');
+      setSessionTerminated(true);
+    });
+  }, [setSessionTerminated]);
+
+  // Handle closing the session terminated modal
+  const handleSessionModalClose = () => {
+    setSessionTerminated(false);
+    window.location.href = '/login';
+  };
 
   // Initialize app - load stored auth and encryption
   useEffect(() => {
@@ -279,6 +293,12 @@ function App() {
         {/* 404 - Redirect to Landing */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+
+      {/* Session Terminated Modal */}
+      <SessionTerminatedModal
+        isOpen={sessionTerminated}
+        onClose={handleSessionModalClose}
+      />
     </BrowserRouter>
   );
 }
