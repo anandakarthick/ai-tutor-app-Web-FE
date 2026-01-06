@@ -10,10 +10,15 @@ const PROD_API_URL = 'https://api.aitutor.com/api/v1';
 export const API_CONFIG = {
   BASE_URL: import.meta.env.DEV ? DEV_API_URL : PROD_API_URL,
   TIMEOUT: 30000,
+  
+  // E2E Encryption settings - same as mobile app
+  ENCRYPTION_ENABLED: true,
 };
 
 export const ENDPOINTS = {
   AUTH: {
+    HANDSHAKE: '/auth/handshake',
+    PUBLIC_KEY: '/auth/public-key',
     SEND_OTP: '/auth/send-otp',
     VERIFY_OTP: '/auth/verify-otp',
     REGISTER: '/auth/register',

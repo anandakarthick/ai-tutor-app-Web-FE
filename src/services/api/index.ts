@@ -12,6 +12,9 @@ export {
   getStoredStudent,
   setStoredUser,
   setStoredStudent,
+  initializeEncryption,
+  isEncryptionReady,
+  getEncryptionStatus,
 } from './client';
 
 export { authApi } from './auth';

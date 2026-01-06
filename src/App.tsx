@@ -2,7 +2,7 @@
  * Main App with Routing
  */
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { Layout } from './components';
@@ -29,7 +29,8 @@ import {
   PrivacyPolicy,
 } from './pages';
 import { useAuthStore } from './store/authStore';
-import { isAuthenticated } from './services/api';
+import { isAuthenticated, initializeEncryption, getEncryptionStatus } from './services/api';
+import { encryptionDebug } from './services/encryption'; // Load debug utilities
 import './App.css';
 
 // Protected Route Component
@@ -61,6 +62,35 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
 
 function App() {
   const { loadStoredAuth, fetchStudents, student } = useAuthStore();
+  const [encryptionInitialized, setEncryptionInitialized] = useState(false);
+
+  // Initialize encryption on app start
+  useEffect(() => {
+    const initEncryption = async () => {
+      try {
+        console.log('🔐 Starting E2E encryption initialization...');
+        const success = await initializeEncryption();
+        console.log('🔐 Encryption initialization result:', success);
+        console.log('📋 Encryption status:', getEncryptionStatus());
+        
+        // Log debug helper availability
+        if (success) {
+          console.log('💡 Debug utilities available. Type encryptionDebug.help() in console for commands.');
+        }
+      } catch (error) {
+        console.error('❌ Encryption initialization error:', error);
+      } finally {
+        setEncryptionInitialized(true);
+      }
+    };
+
+    initEncryption();
+    
+    // Ensure debug utilities are loaded
+    if (encryptionDebug) {
+      console.log('🔧 Encryption debug utilities ready');
+    }
+  }, []);
 
   useEffect(() => {
     loadStoredAuth();
