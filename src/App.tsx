@@ -5,7 +5,7 @@
 import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
-import { Layout, SessionTerminatedModal } from './components';
+import { Layout, SessionTerminatedModal, SubscriptionGuard } from './components';
 import {
   Landing,
   Dashboard,
@@ -30,6 +30,7 @@ import {
   PrivacyPolicy,
 } from './pages';
 import { useAuthStore } from './store/authStore';
+import { useSubscriptionStore } from './store/subscriptionStore';
 import { initializeEncryption, getEncryptionStatus, setSessionTerminatedCallback } from './services/api';
 import { encryptionDebug } from './services/encryption';
 import './App.css';
@@ -55,6 +56,31 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <Layout>{children}</Layout>;
 }
 
+// Protected Route with Subscription Check
+function SubscriptionProtectedRoute({ children }: { children: React.ReactNode }) {
+  const location = useLocation();
+  const { isAuthenticated, isLoading } = useAuthStore();
+
+  // Show loading while checking auth
+  if (isLoading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <div className="loading-spinner"></div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  return (
+    <Layout>
+      <SubscriptionGuard>{children}</SubscriptionGuard>
+    </Layout>
+  );
+}
+
 // Public Route (redirect if authenticated)
 function PublicRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuthStore();
@@ -77,6 +103,7 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
 
 function App() {
   const { loadStoredAuth, fetchStudents, student, isAuthenticated, sessionTerminated, setSessionTerminated } = useAuthStore();
+  const { checkSubscription, clearSubscription } = useSubscriptionStore();
   const [isInitialized, setIsInitialized] = useState(false);
 
   // Set up session terminated callback
@@ -84,8 +111,9 @@ function App() {
     setSessionTerminatedCallback(() => {
       console.log('🚫 Session terminated - showing modal');
       setSessionTerminated(true);
+      clearSubscription();
     });
-  }, [setSessionTerminated]);
+  }, [setSessionTerminated, clearSubscription]);
 
   // Handle closing the session terminated modal
   const handleSessionModalClose = () => {
@@ -119,10 +147,17 @@ function App() {
     initApp();
   }, []);
 
-  // Fetch student data when authenticated
+  // Fetch student data and check subscription when authenticated
   useEffect(() => {
-    if (isInitialized && isAuthenticated && !student) {
-      fetchStudents();
+    if (isInitialized && isAuthenticated) {
+      if (!student) {
+        fetchStudents();
+      }
+      // Check subscription status
+      checkSubscription();
+    } else if (isInitialized && !isAuthenticated) {
+      // Clear subscription when logged out
+      clearSubscription();
     }
   }, [isInitialized, isAuthenticated, student]);
 
@@ -192,84 +227,12 @@ function App() {
           }
         />
 
-        {/* Protected Routes */}
+        {/* Protected Routes - No Subscription Required */}
         <Route
           path="/dashboard"
           element={
             <ProtectedRoute>
               <Dashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/learn"
-          element={
-            <ProtectedRoute>
-              <Learn />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/learn/subject/:subjectId"
-          element={
-            <ProtectedRoute>
-              <SubjectDetail />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/learn/chapter/:chapterId"
-          element={
-            <ProtectedRoute>
-              <ChapterDetail />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/learn/topic/:topicId"
-          element={
-            <ProtectedRoute>
-              <Lesson />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/quizzes"
-          element={
-            <ProtectedRoute>
-              <Quizzes />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/quizzes/:quizId"
-          element={
-            <ProtectedRoute>
-              <QuizTaking />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/doubts"
-          element={
-            <ProtectedRoute>
-              <Doubts />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/progress"
-          element={
-            <ProtectedRoute>
-              <Progress />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/study-plan"
-          element={
-            <ProtectedRoute>
-              <StudyPlan />
             </ProtectedRoute>
           }
         />
@@ -287,6 +250,80 @@ function App() {
             <ProtectedRoute>
               <Subscription />
             </ProtectedRoute>
+          }
+        />
+
+        {/* Protected Routes - Subscription Required */}
+        <Route
+          path="/learn"
+          element={
+            <SubscriptionProtectedRoute>
+              <Learn />
+            </SubscriptionProtectedRoute>
+          }
+        />
+        <Route
+          path="/learn/subject/:subjectId"
+          element={
+            <SubscriptionProtectedRoute>
+              <SubjectDetail />
+            </SubscriptionProtectedRoute>
+          }
+        />
+        <Route
+          path="/learn/chapter/:chapterId"
+          element={
+            <SubscriptionProtectedRoute>
+              <ChapterDetail />
+            </SubscriptionProtectedRoute>
+          }
+        />
+        <Route
+          path="/learn/topic/:topicId"
+          element={
+            <SubscriptionProtectedRoute>
+              <Lesson />
+            </SubscriptionProtectedRoute>
+          }
+        />
+        <Route
+          path="/quizzes"
+          element={
+            <SubscriptionProtectedRoute>
+              <Quizzes />
+            </SubscriptionProtectedRoute>
+          }
+        />
+        <Route
+          path="/quizzes/:quizId"
+          element={
+            <SubscriptionProtectedRoute>
+              <QuizTaking />
+            </SubscriptionProtectedRoute>
+          }
+        />
+        <Route
+          path="/doubts"
+          element={
+            <SubscriptionProtectedRoute>
+              <Doubts />
+            </SubscriptionProtectedRoute>
+          }
+        />
+        <Route
+          path="/progress"
+          element={
+            <SubscriptionProtectedRoute>
+              <Progress />
+            </SubscriptionProtectedRoute>
+          }
+        />
+        <Route
+          path="/study-plan"
+          element={
+            <SubscriptionProtectedRoute>
+              <StudyPlan />
+            </SubscriptionProtectedRoute>
           }
         />
 

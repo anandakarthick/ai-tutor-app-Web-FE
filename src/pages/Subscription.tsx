@@ -26,6 +26,7 @@ import {
   PartyPopper,
 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
+import { useSubscriptionStore } from '../store/subscriptionStore';
 import { subscriptionApi, paymentsApi } from '../services/api';
 import toast from 'react-hot-toast';
 import './Subscription.css';
@@ -88,6 +89,7 @@ interface Payment {
 
 export function Subscription() {
   const { user } = useAuthStore();
+  const { checkSubscription } = useSubscriptionStore();
   const [activeSubscription, setActiveSubscription] = useState<UserSubscription | null>(null);
   const [transactions, setTransactions] = useState<Payment[]>([]);
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
@@ -211,9 +213,11 @@ export function Subscription() {
     }
   };
 
-  const handleSuccessModalClose = () => {
+  const handleSuccessModalClose = async () => {
     setShowSuccessModal(false);
     setPurchasedPlan(null);
+    // Refresh subscription status after successful payment
+    await checkSubscription();
   };
 
   const formatDate = (dateStr: string) => {

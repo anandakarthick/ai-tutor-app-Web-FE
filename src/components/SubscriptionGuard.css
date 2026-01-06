@@ -1,0 +1,132 @@
+/**
+ * Subscription Guard Styles
+ */
+
+.subscription-guard-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  gap: 16px;
+  color: #6B7280;
+}
+
+.subscription-guard {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  padding: 24px;
+}
+
+.subscription-guard-content {
+  background: white;
+  border-radius: 24px;
+  padding: 48px 40px;
+  max-width: 480px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+}
+
+.guard-icon-container {
+  width: 100px;
+  height: 100px;
+  background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 24px;
+  color: #F59E0B;
+}
+
+.guard-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 12px 0;
+}
+
+.guard-message {
+  font-size: 16px;
+  color: #6B7280;
+  line-height: 1.6;
+  margin: 0 0 28px 0;
+}
+
+.guard-features {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 28px;
+  text-align: left;
+}
+
+.guard-feature {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #F9FAFB;
+  border-radius: 12px;
+}
+
+.guard-feature svg {
+  color: #F97316;
+  flex-shrink: 0;
+}
+
+.guard-feature span {
+  font-size: 14px;
+  color: #374151;
+}
+
+.guard-cta-button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px 24px;
+  background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);
+  border: none;
+  border-radius: 14px;
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 16px rgba(249, 115, 22, 0.3);
+}
+
+.guard-cta-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(249, 115, 22, 0.4);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .subscription-guard-content {
+    padding: 32px 24px;
+  }
+
+  .guard-icon-container {
+    width: 80px;
+    height: 80px;
+  }
+
+  .guard-icon-container svg {
+    width: 40px;
+    height: 40px;
+  }
+
+  .guard-title {
+    font-size: 24px;
+  }
+
+  .guard-message {
+    font-size: 15px;
+  }
+}
