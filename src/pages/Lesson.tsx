@@ -30,6 +30,7 @@ export function Lesson() {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [streaming, setStreaming] = useState(false);
+  const [completing, setCompleting] = useState(false);
   const [streamedContent, setStreamedContent] = useState('');
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -203,19 +204,46 @@ export function Lesson() {
   };
 
   const handleEndSession = async () => {
-    if (!session?.id) {
+    if (!session?.id || !student?.id || !topicId) {
+      toast.error('Session information missing');
       navigate(-1);
       return;
     }
 
+    setCompleting(true);
+    
     try {
-      await learningApi.endSession(session.id, 10);
-      await learningApi.updateProgress(student!.id, topicId!, 100, 'mastered');
-      toast.success('Lesson completed! +10 XP');
-      navigate(-1);
-    } catch (error) {
-      console.error('End session error:', error);
-      navigate(-1);
+      // End the session first
+      console.log('[Lesson] Ending session:', session.id);
+      const endRes = await learningApi.endSession(session.id, 10);
+      console.log('[Lesson] End session response:', endRes);
+
+      // Update progress to 100%
+      console.log('[Lesson] Updating progress for topic:', topicId);
+      const progressRes = await learningApi.updateProgress(student.id, topicId, 100, 'mastered');
+      console.log('[Lesson] Progress update response:', progressRes);
+
+      if (progressRes.success) {
+        toast.success('🎉 Lesson completed! +10 XP');
+      } else {
+        toast.success('Lesson completed!');
+        console.warn('[Lesson] Progress update returned success: false', progressRes);
+      }
+      
+      // Navigate back after a short delay to show the toast
+      setTimeout(() => {
+        navigate(-1);
+      }, 500);
+      
+    } catch (error: any) {
+      console.error('[Lesson] End session error:', error);
+      toast.error(error?.message || 'Failed to complete lesson');
+      // Still navigate back even if there's an error
+      setTimeout(() => {
+        navigate(-1);
+      }, 1000);
+    } finally {
+      setCompleting(false);
     }
   };
 
@@ -242,9 +270,18 @@ export function Lesson() {
           <h1>{topic?.topicTitle || 'Lesson'}</h1>
           <p>{topic?.chapter?.chapterTitle}</p>
         </div>
-        <button className="complete-btn" onClick={handleEndSession}>
-          <CheckCircle size={20} />
-          <span>Complete Lesson</span>
+        <button className="complete-btn" onClick={handleEndSession} disabled={completing}>
+          {completing ? (
+            <>
+              <Loader2 size={20} className="spinner" />
+              <span>Completing...</span>
+            </>
+          ) : (
+            <>
+              <CheckCircle size={20} />
+              <span>Complete Lesson</span>
+            </>
+          )}
         </button>
       </header>
 

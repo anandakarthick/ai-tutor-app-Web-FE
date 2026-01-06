@@ -95,9 +95,19 @@
   transition: all 0.2s;
 }
 
-.complete-btn:hover {
+.complete-btn:hover:not(:disabled) {
   transform: scale(1.05);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.complete-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.complete-btn .spinner {
+  animation: spin 1s linear infinite;
 }
 
 /* Chat Container */
