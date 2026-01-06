@@ -1,5 +1,5 @@
 /**
- * Subscription & Transactions Page
+ * Subscription & Transactions Page with Razorpay Integration
  */
 
 import { useEffect, useState } from 'react';
@@ -11,7 +11,6 @@ import {
   CheckCircle,
   XCircle,
   Download,
-  FileText,
   ChevronRight,
   AlertCircle,
   Star,
@@ -22,11 +21,20 @@ import {
   Receipt,
   X,
   Loader2,
+  Check,
+  Sparkles,
 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { subscriptionApi, paymentsApi } from '../services/api';
 import toast from 'react-hot-toast';
 import './Subscription.css';
+
+// Razorpay types
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
 
 interface SubscriptionPlan {
   id: string;
@@ -80,34 +88,119 @@ interface Payment {
 export function Subscription() {
   const { user } = useAuthStore();
   const [activeSubscription, setActiveSubscription] = useState<UserSubscription | null>(null);
-  const [allSubscriptions, setAllSubscriptions] = useState<UserSubscription[]>([]);
   const [transactions, setTransactions] = useState<Payment[]>([]);
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [loading, setLoading] = useState(true);
+  const [processingPayment, setProcessingPayment] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<Payment | null>(null);
   const [activeTab, setActiveTab] = useState<'plan' | 'transactions'>('plan');
 
   useEffect(() => {
+    loadRazorpayScript();
     loadData();
   }, []);
 
+  // Load Razorpay SDK
+  const loadRazorpayScript = () => {
+    if (document.getElementById('razorpay-script')) return;
+    
+    const script = document.createElement('script');
+    script.id = 'razorpay-script';
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.async = true;
+    document.body.appendChild(script);
+  };
+
   const loadData = async () => {
     try {
-      const [activeRes, allSubsRes, transactionsRes, plansRes] = await Promise.all([
+      const [activeRes, transactionsRes, plansRes] = await Promise.all([
         subscriptionApi.getActive(),
-        subscriptionApi.getAll(),
         paymentsApi.getAll(),
         subscriptionApi.getPlans(),
       ]);
 
       if (activeRes.success) setActiveSubscription(activeRes.data);
-      if (allSubsRes.success) setAllSubscriptions(allSubsRes.data || []);
       if (transactionsRes.success) setTransactions(transactionsRes.data || []);
       if (plansRes.success) setPlans(plansRes.data || []);
     } catch (error) {
       console.error('Failed to load subscription data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSubscribe = async (plan: SubscriptionPlan) => {
+    if (!window.Razorpay) {
+      toast.error('Payment system not loaded. Please refresh the page.');
+      return;
+    }
+
+    setProcessingPayment(true);
+
+    try {
+      // Create order
+      const orderRes = await paymentsApi.createOrder({
+        amount: plan.price,
+        planId: plan.id,
+        description: `${plan.displayName} Subscription`,
+      });
+
+      if (!orderRes.success) {
+        throw new Error(orderRes.message || 'Failed to create order');
+      }
+
+      const { orderId, keyId, amount } = orderRes.data;
+
+      // Open Razorpay checkout
+      const options = {
+        key: keyId,
+        amount: amount,
+        currency: 'INR',
+        name: 'AI Tutor',
+        description: `${plan.displayName} Subscription`,
+        order_id: orderId,
+        handler: async (response: any) => {
+          try {
+            // Verify payment
+            const verifyRes = await paymentsApi.verify({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+            });
+
+            if (verifyRes.success) {
+              toast.success('Payment successful! Your subscription is now active.');
+              loadData(); // Reload data
+            } else {
+              toast.error('Payment verification failed');
+            }
+          } catch (error) {
+            console.error('Verification error:', error);
+            toast.error('Payment verification failed');
+          }
+          setProcessingPayment(false);
+        },
+        prefill: {
+          name: user?.fullName || '',
+          email: user?.email || '',
+          contact: user?.phone || '',
+        },
+        theme: {
+          color: '#F97316',
+        },
+        modal: {
+          ondismiss: () => {
+            setProcessingPayment(false);
+          },
+        },
+      };
+
+      const razorpay = new window.Razorpay(options);
+      razorpay.open();
+    } catch (error: any) {
+      console.error('Payment error:', error);
+      toast.error(error.message || 'Failed to initiate payment');
+      setProcessingPayment(false);
     }
   };
 
@@ -133,6 +226,7 @@ export function Subscription() {
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
       currency,
+      maximumFractionDigits: 0,
     }).format(amount);
   };
 
@@ -159,14 +253,6 @@ export function Subscription() {
         return { bg: '#DBEAFE', color: '#3B82F6' };
       default:
         return { bg: '#F3F4F6', color: '#6B7280' };
-    }
-  };
-
-  const handleDownloadInvoice = (payment: Payment) => {
-    if (payment.invoiceUrl) {
-      window.open(payment.invoiceUrl, '_blank');
-    } else {
-      toast.error('Invoice not available for this transaction');
     }
   };
 
@@ -199,7 +285,7 @@ export function Subscription() {
           onClick={() => setActiveTab('plan')}
         >
           <Crown size={18} />
-          <span>Current Plan</span>
+          <span>Plans</span>
         </button>
         <button
           className={`tab ${activeTab === 'transactions' ? 'active' : ''}`}
@@ -213,7 +299,7 @@ export function Subscription() {
       {activeTab === 'plan' ? (
         <>
           {/* Current Plan Card */}
-          {activeSubscription ? (
+          {activeSubscription && (
             <div className="current-plan-card">
               <div className="plan-badge">
                 <Crown size={20} />
@@ -272,110 +358,91 @@ export function Subscription() {
                   )}
                   <span>{activeSubscription.status}</span>
                 </div>
-                {activeSubscription.autoRenew && (
-                  <div className="auto-renew">
-                    <RefreshCw size={14} />
-                    <span>Auto-renew enabled</span>
-                  </div>
-                )}
               </div>
-
-              {activeSubscription.couponCode && (
-                <div className="coupon-applied">
-                  <Gift size={16} />
-                  <span>Coupon applied: {activeSubscription.couponCode}</span>
-                  <span className="discount">- {formatCurrency(activeSubscription.discountAmount)}</span>
-                </div>
-              )}
-
-              {/* Plan Features */}
-              {activeSubscription.plan?.features && activeSubscription.plan.features.length > 0 && (
-                <div className="plan-features">
-                  <h4>Plan Features</h4>
-                  <ul>
-                    {activeSubscription.plan.features.map((feature, index) => (
-                      <li key={index}>
-                        <CheckCircle size={16} />
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="no-plan-card">
-              <div className="no-plan-icon">
-                <Crown size={64} />
-              </div>
-              <h2>No Active Subscription</h2>
-              <p>Subscribe to a plan to unlock all features</p>
-              <button className="subscribe-btn">
-                <Zap size={20} />
-                <span>View Plans</span>
-              </button>
             </div>
           )}
 
           {/* Available Plans */}
-          {!activeSubscription && plans.length > 0 && (
-            <div className="available-plans">
-              <h3>Available Plans</h3>
-              <div className="plans-grid">
-                {plans.map((plan) => (
-                  <div key={plan.id} className={`plan-card ${plan.isPopular ? 'popular' : ''}`}>
-                    {plan.isPopular && (
-                      <div className="popular-badge">
-                        <Star size={14} />
-                        <span>Most Popular</span>
-                      </div>
-                    )}
+          <div className="available-plans">
+            <h3>{activeSubscription ? 'Upgrade Your Plan' : 'Choose Your Plan'}</h3>
+            <div className="plans-grid two-plans">
+              {plans.map((plan) => (
+                <div key={plan.id} className={`plan-card ${plan.isPopular ? 'popular' : ''}`}>
+                  {plan.isPopular && (
+                    <div className="popular-badge">
+                      <Star size={14} />
+                      <span>Best Value</span>
+                    </div>
+                  )}
+                  
+                  <div className="plan-card-header">
                     <h4>{plan.displayName}</h4>
                     <p className="plan-desc">{plan.description}</p>
-                    <div className="plan-pricing">
-                      {plan.originalPrice && plan.originalPrice > plan.price && (
-                        <span className="original-price">{formatCurrency(plan.originalPrice)}</span>
-                      )}
-                      <span className="current-price">{formatCurrency(plan.price)}</span>
-                      <span className="duration">/{plan.durationMonths} month(s)</span>
-                    </div>
-                    <button className="select-plan-btn">
-                      Select Plan
-                      <ChevronRight size={18} />
-                    </button>
                   </div>
-                ))}
-              </div>
-            </div>
-          )}
+                  
+                  <div className="plan-pricing">
+                    {plan.originalPrice && plan.originalPrice > plan.price && (
+                      <span className="original-price">{formatCurrency(plan.originalPrice)}</span>
+                    )}
+                    <span className="current-price">{formatCurrency(plan.price)}</span>
+                    <span className="duration">
+                      /{plan.durationMonths === 1 ? 'month' : `${plan.durationMonths} months`}
+                    </span>
+                  </div>
 
-          {/* Subscription History */}
-          {allSubscriptions.length > 1 && (
-            <div className="subscription-history">
-              <h3>Subscription History</h3>
-              <div className="history-list">
-                {allSubscriptions.filter(s => s.id !== activeSubscription?.id).map((sub) => (
-                  <div key={sub.id} className="history-item">
-                    <div className="history-info">
-                      <span className="history-plan">{sub.plan?.displayName || 'Plan'}</span>
-                      <span className="history-dates">
-                        {formatDate(sub.startedAt)} - {formatDate(sub.expiresAt)}
-                      </span>
+                  {plan.durationMonths === 12 && (
+                    <div className="savings-badge">
+                      <Gift size={14} />
+                      <span>Save ₹588/year</span>
                     </div>
-                    <div
-                      className="history-status"
-                      style={{
-                        background: getStatusColor(sub.status).bg,
-                        color: getStatusColor(sub.status).color,
-                      }}
-                    >
-                      {sub.status}
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  )}
+
+                  <ul className="plan-features-list">
+                    {plan.features?.slice(0, 6).map((feature, index) => (
+                      <li key={index}>
+                        <Check size={16} />
+                        <span>{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <button 
+                    className={`subscribe-btn ${plan.isPopular ? 'primary' : ''}`}
+                    onClick={() => handleSubscribe(plan)}
+                    disabled={processingPayment}
+                  >
+                    {processingPayment ? (
+                      <>
+                        <Loader2 size={18} className="spinner" />
+                        <span>Processing...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Zap size={18} />
+                        <span>Subscribe Now</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              ))}
             </div>
-          )}
+          </div>
+
+          {/* Trust Badges */}
+          <div className="trust-badges">
+            <div className="trust-badge">
+              <Shield size={20} />
+              <span>Secure Payments</span>
+            </div>
+            <div className="trust-badge">
+              <RefreshCw size={20} />
+              <span>Cancel Anytime</span>
+            </div>
+            <div className="trust-badge">
+              <Sparkles size={20} />
+              <span>Instant Access</span>
+            </div>
+          </div>
         </>
       ) : (
         /* Transactions Tab */
@@ -462,18 +529,12 @@ export function Subscription() {
               <div className="detail-rows">
                 <div className="detail-row">
                   <span className="label">Transaction ID</span>
-                  <span className="value">{selectedTransaction.id}</span>
+                  <span className="value">{selectedTransaction.id.substring(0, 18)}...</span>
                 </div>
                 {selectedTransaction.gatewayPaymentId && (
                   <div className="detail-row">
                     <span className="label">Payment ID</span>
                     <span className="value">{selectedTransaction.gatewayPaymentId}</span>
-                  </div>
-                )}
-                {selectedTransaction.gatewayOrderId && (
-                  <div className="detail-row">
-                    <span className="label">Order ID</span>
-                    <span className="value">{selectedTransaction.gatewayOrderId}</span>
                   </div>
                 )}
                 <div className="detail-row">
@@ -484,12 +545,6 @@ export function Subscription() {
                   <span className="label">Payment Gateway</span>
                   <span className="value">{selectedTransaction.gateway}</span>
                 </div>
-                {selectedTransaction.paymentMethod && (
-                  <div className="detail-row">
-                    <span className="label">Payment Method</span>
-                    <span className="value">{selectedTransaction.paymentMethod}</span>
-                  </div>
-                )}
                 {selectedTransaction.description && (
                   <div className="detail-row">
                     <span className="label">Description</span>
@@ -500,13 +555,8 @@ export function Subscription() {
             </div>
 
             <div className="modal-footer">
-              <button
-                className="download-invoice-btn"
-                onClick={() => handleDownloadInvoice(selectedTransaction)}
-                disabled={!selectedTransaction.invoiceUrl}
-              >
-                <Download size={18} />
-                <span>Download Invoice</span>
+              <button className="close-modal-btn" onClick={() => setSelectedTransaction(null)}>
+                Close
               </button>
             </div>
           </div>
