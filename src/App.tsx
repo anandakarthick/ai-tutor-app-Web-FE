@@ -33,6 +33,7 @@ import { useAuthStore } from './store/authStore';
 import { useSubscriptionStore } from './store/subscriptionStore';
 import { initializeEncryption, getEncryptionStatus, setSessionTerminatedCallback } from './services/api';
 import { encryptionDebug } from './services/encryption';
+import screenSecurity from './services/screenSecurity';
 import './App.css';
 
 // Protected Route Component
@@ -121,11 +122,14 @@ function App() {
     window.location.href = '/login';
   };
 
-  // Initialize app - load stored auth and encryption
+  // Initialize app - load stored auth, encryption, and security
   useEffect(() => {
     const initApp = async () => {
       // Load stored auth from Zustand persist
       loadStoredAuth();
+      
+      // Initialize screen security (prevent screenshots, screen recording)
+      screenSecurity.initialize();
       
       // Initialize encryption
       try {

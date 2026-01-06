@@ -141,7 +141,7 @@ export function Layout({ children }: LayoutProps) {
       </aside>
 
       {/* Main Content */}
-      <main className="main-content">
+      <main className="main-content protected-content">
         {children}
       </main>
     </div>
