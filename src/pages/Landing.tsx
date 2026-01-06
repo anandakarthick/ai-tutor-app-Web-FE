@@ -42,6 +42,17 @@ import {
   Loader2,
   Gift,
   Crown,
+  Facebook,
+  Twitter,
+  Instagram,
+  Linkedin,
+  Youtube,
+  Mail,
+  Phone,
+  MapPin,
+  MessageSquare,
+  Headphones,
+  Send,
 } from 'lucide-react';
 import { subscriptionApi } from '../services/api';
 import logoImage from '../assets/images/logo.png';
@@ -128,11 +139,26 @@ const steps = [
   { number: '04', title: 'Track Progress', description: 'Monitor your improvement daily', icon: BarChart3 },
 ];
 
+// WhatsApp icon component
+const WhatsAppIcon = () => (
+  <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+  </svg>
+);
+
 export function Landing() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [plans, setPlans] = useState<any[]>([]);
   const [loadingPlans, setLoadingPlans] = useState(true);
+  
+  // Support widget state
+  const [supportOpen, setSupportOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatMessage, setChatMessage] = useState('');
+  const [chatMessages, setChatMessages] = useState<{type: 'user' | 'bot', text: string}[]>([
+    { type: 'bot', text: 'Hello! 👋 Welcome to AI Tutor. How can I help you today?' }
+  ]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -238,6 +264,35 @@ export function Landing() {
     if (durationMonths === 1) return 'month';
     if (durationMonths === 12) return 'year';
     return `${durationMonths} months`;
+  };
+
+  // Handle chat message send
+  const handleSendMessage = () => {
+    if (!chatMessage.trim()) return;
+    
+    setChatMessages(prev => [...prev, { type: 'user', text: chatMessage }]);
+    
+    // Simulate bot response
+    setTimeout(() => {
+      let response = "Thank you for your message! Our team will get back to you soon. For immediate assistance, please contact us on WhatsApp.";
+      
+      if (chatMessage.toLowerCase().includes('price') || chatMessage.toLowerCase().includes('plan')) {
+        response = "We offer two plans: Monthly at ₹299/month and Yearly at ₹3,000/year (Save ₹588!). Check out our Study Plans section for more details! 📚";
+      } else if (chatMessage.toLowerCase().includes('subject')) {
+        response = "We cover all major subjects including Mathematics, Science, English, Hindi, Physics, Chemistry, Biology, and Social Science for CBSE, ICSE, and State boards! 🎓";
+      } else if (chatMessage.toLowerCase().includes('hello') || chatMessage.toLowerCase().includes('hi')) {
+        response = "Hello! 👋 How can I assist you today? Feel free to ask about our plans, subjects, or any other queries!";
+      }
+      
+      setChatMessages(prev => [...prev, { type: 'bot', text: response }]);
+    }, 1000);
+    
+    setChatMessage('');
+  };
+
+  // WhatsApp handler
+  const handleWhatsApp = () => {
+    window.open('https://wa.me/919876543210?text=Hi! I have a question about AI Tutor.', '_blank');
   };
 
   return (
@@ -629,32 +684,196 @@ export function Landing() {
               <span>AI Tutor</span>
             </Link>
             <p>Making quality education accessible to every student through the power of AI.</p>
+            
+            {/* Contact Info */}
+            <div className="footer-contact">
+              <a href="mailto:support@aitutor.com" className="contact-item">
+                <Mail size={16} />
+                <span>support@aitutor.com</span>
+              </a>
+              <a href="tel:+919876543210" className="contact-item">
+                <Phone size={16} />
+                <span>+91 98765 43210</span>
+              </a>
+              <div className="contact-item">
+                <MapPin size={16} />
+                <span>Chennai, Tamil Nadu, India</span>
+              </div>
+            </div>
+            
+            {/* Social Media */}
+            <div className="social-links">
+              <a href="https://facebook.com/aitutor" target="_blank" rel="noopener noreferrer" className="social-link" title="Facebook">
+                <Facebook size={20} />
+              </a>
+              <a href="https://twitter.com/aitutor" target="_blank" rel="noopener noreferrer" className="social-link" title="Twitter">
+                <Twitter size={20} />
+              </a>
+              <a href="https://instagram.com/aitutor" target="_blank" rel="noopener noreferrer" className="social-link" title="Instagram">
+                <Instagram size={20} />
+              </a>
+              <a href="https://linkedin.com/company/aitutor" target="_blank" rel="noopener noreferrer" className="social-link" title="LinkedIn">
+                <Linkedin size={20} />
+              </a>
+              <a href="https://youtube.com/@aitutor" target="_blank" rel="noopener noreferrer" className="social-link" title="YouTube">
+                <Youtube size={20} />
+              </a>
+              <a href="https://wa.me/919876543210" target="_blank" rel="noopener noreferrer" className="social-link whatsapp" title="WhatsApp">
+                <WhatsAppIcon />
+              </a>
+            </div>
           </div>
+          
           <div className="footer-links">
             <div className="footer-column">
               <h4>Product</h4>
               <a href="#features">Features</a>
               <a href="#subjects">Subjects</a>
               <a href="#study-plans">Study Plans</a>
+              <Link to="/download">Download App</Link>
+              <Link to="/demo">Request Demo</Link>
             </div>
             <div className="footer-column">
               <h4>Company</h4>
               <Link to="/about">About Us</Link>
               <Link to="/careers">Careers</Link>
               <Link to="/blog">Blog</Link>
+              <Link to="/press">Press Kit</Link>
+              <Link to="/partners">Partners</Link>
             </div>
             <div className="footer-column">
               <h4>Support</h4>
               <Link to="/help">Help Center</Link>
               <Link to="/contact">Contact Us</Link>
+              <Link to="/faq">FAQs</Link>
+              <Link to="/community">Community</Link>
+              <Link to="/feedback">Feedback</Link>
+            </div>
+            <div className="footer-column">
+              <h4>Legal</h4>
               <Link to="/privacy">Privacy Policy</Link>
+              <Link to="/terms">Terms of Service</Link>
+              <Link to="/cookies">Cookies Policy</Link>
+              <Link to="/refund">Refund Policy</Link>
+              <Link to="/disclaimer">Disclaimer</Link>
             </div>
           </div>
         </div>
+        
+        {/* Newsletter */}
+        <div className="footer-newsletter">
+          <div className="newsletter-content">
+            <div className="newsletter-text">
+              <h4>Subscribe to our Newsletter</h4>
+              <p>Get the latest updates, tips, and educational resources delivered to your inbox.</p>
+            </div>
+            <div className="newsletter-form">
+              <input type="email" placeholder="Enter your email" />
+              <button className="btn btn-primary">
+                Subscribe
+                <Send size={16} />
+              </button>
+            </div>
+          </div>
+        </div>
+        
         <div className="footer-bottom">
           <p>© 2025 AI Tutor. All rights reserved. Powered by <a href="https://kasoftware.in/" target="_blank" rel="noopener noreferrer">KA Software</a></p>
+          <div className="footer-bottom-links">
+            <Link to="/privacy">Privacy</Link>
+            <Link to="/terms">Terms</Link>
+            <Link to="/sitemap">Sitemap</Link>
+          </div>
         </div>
       </footer>
+
+      {/* Floating Support Widget */}
+      <div className={`support-widget ${supportOpen ? 'open' : ''}`}>
+        {/* Chat Window */}
+        {chatOpen && (
+          <div className="chat-window">
+            <div className="chat-header">
+              <div className="chat-header-info">
+                <div className="chat-avatar">
+                  <MessageSquare size={20} />
+                </div>
+                <div>
+                  <h4>AI Tutor Support</h4>
+                  <span>Online</span>
+                </div>
+              </div>
+              <button className="chat-close" onClick={() => setChatOpen(false)}>
+                <X size={20} />
+              </button>
+            </div>
+            <div className="chat-messages">
+              {chatMessages.map((msg, index) => (
+                <div key={index} className={`chat-message ${msg.type}`}>
+                  {msg.text}
+                </div>
+              ))}
+            </div>
+            <div className="chat-input">
+              <input
+                type="text"
+                placeholder="Type your message..."
+                value={chatMessage}
+                onChange={(e) => setChatMessage(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+              />
+              <button onClick={handleSendMessage}>
+                <Send size={18} />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Support Options */}
+        {supportOpen && !chatOpen && (
+          <div className="support-options">
+            <button className="support-option chat" onClick={() => setChatOpen(true)}>
+              <MessageSquare size={24} />
+              <div>
+                <span className="option-title">Chat with us</span>
+                <span className="option-desc">Get instant help</span>
+              </div>
+            </button>
+            <button className="support-option whatsapp" onClick={handleWhatsApp}>
+              <WhatsAppIcon />
+              <div>
+                <span className="option-title">WhatsApp</span>
+                <span className="option-desc">Message us directly</span>
+              </div>
+            </button>
+            <a href="tel:+919876543210" className="support-option phone">
+              <Phone size={24} />
+              <div>
+                <span className="option-title">Call Us</span>
+                <span className="option-desc">+91 98765 43210</span>
+              </div>
+            </a>
+            <a href="mailto:support@aitutor.com" className="support-option email">
+              <Mail size={24} />
+              <div>
+                <span className="option-title">Email</span>
+                <span className="option-desc">support@aitutor.com</span>
+              </div>
+            </a>
+          </div>
+        )}
+
+        {/* Main Toggle Button */}
+        <button 
+          className={`support-toggle ${supportOpen ? 'active' : ''}`}
+          onClick={() => {
+            setSupportOpen(!supportOpen);
+            if (supportOpen) setChatOpen(false);
+          }}
+        >
+          {supportOpen ? <X size={24} /> : <Headphones size={24} />}
+          {!supportOpen && <span className="support-badge">Need Help?</span>}
+        </button>
+      </div>
     </div>
   );
 }
