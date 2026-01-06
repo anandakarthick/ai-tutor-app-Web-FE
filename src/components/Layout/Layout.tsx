@@ -19,6 +19,7 @@ import {
   Flame,
   Star,
   GraduationCap,
+  Crown,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import logoImage from '../../assets/images/logo.png';
@@ -35,6 +36,7 @@ const navItems = [
   { path: '/doubts', label: 'Ask Doubt', icon: HelpCircle },
   { path: '/progress', label: 'Progress', icon: TrendingUp },
   { path: '/study-plan', label: 'Study Plan', icon: Calendar },
+  { path: '/subscription', label: 'Subscription', icon: Crown },
   { path: '/profile', label: 'Profile', icon: User },
 ];
 

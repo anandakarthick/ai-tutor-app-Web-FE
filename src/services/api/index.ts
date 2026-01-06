@@ -26,3 +26,5 @@ export { doubtsApi } from './doubts';
 export { studyPlansApi } from './studyPlans';
 export { progressApi } from './progress';
 export { dashboardApi } from './dashboard';
+export { subscriptionApi } from './subscription';
+export { paymentsApi } from './payments';

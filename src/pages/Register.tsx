@@ -1,11 +1,11 @@
 /**
- * Register Page
+ * Register Page - Fixed
  */
 
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { User, Phone, Mail, ArrowRight, Loader2, ChevronDown, BookOpen, Target, Trophy } from 'lucide-react';
-import { authApi, contentApi } from '../services/api';
+import { authApi, contentApi, setAuthTokens, setStoredUser, setStoredStudent } from '../services/api';
 import { useAuthStore } from '../store/authStore';
 import toast from 'react-hot-toast';
 import logoImage from '../assets/images/logo.png';
@@ -102,6 +102,7 @@ export function Register() {
       const verifyRes = await authApi.verifyOtp(formData.phone, otp);
       if (!verifyRes.success) {
         toast.error('Invalid OTP');
+        setLoading(false);
         return;
       }
 
@@ -111,11 +112,25 @@ export function Register() {
         studentName: formData.studentName || formData.fullName,
       });
       
-      if (response.success) {
-        setUser(response.data.user);
-        if (response.data.student) {
-          setStudent(response.data.student);
+      if (response.success && response.data) {
+        const { user, student, accessToken, refreshToken } = response.data;
+        
+        // Store tokens in localStorage
+        if (accessToken && refreshToken) {
+          setAuthTokens(accessToken, refreshToken);
         }
+        
+        // Store user and student data
+        if (user) {
+          setStoredUser(user);
+          setUser(user);
+        }
+        
+        if (student) {
+          setStoredStudent(student);
+          setStudent(student);
+        }
+        
         toast.success('Registration successful!');
         navigate('/dashboard');
       }

@@ -21,6 +21,7 @@ import {
   Progress,
   Profile,
   StudyPlan,
+  Subscription,
   AboutUs,
   Careers,
   Blog,
@@ -29,20 +30,25 @@ import {
   PrivacyPolicy,
 } from './pages';
 import { useAuthStore } from './store/authStore';
-import { isAuthenticated, initializeEncryption, getEncryptionStatus } from './services/api';
-import { encryptionDebug } from './services/encryption'; // Load debug utilities
+import { initializeEncryption, getEncryptionStatus } from './services/api';
+import { encryptionDebug } from './services/encryption';
 import './App.css';
 
 // Protected Route Component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const location = useLocation();
-  const { isAuthenticated: authState, loadStoredAuth } = useAuthStore();
+  const { isAuthenticated, isLoading } = useAuthStore();
 
-  useEffect(() => {
-    loadStoredAuth();
-  }, []);
+  // Show loading while checking auth
+  if (isLoading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <div className="loading-spinner"></div>
+      </div>
+    );
+  }
 
-  if (!isAuthenticated() && !authState) {
+  if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
@@ -51,9 +57,18 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 // Public Route (redirect if authenticated)
 function PublicRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated: authState } = useAuthStore();
+  const { isAuthenticated, isLoading } = useAuthStore();
 
-  if (isAuthenticated() || authState) {
+  // Show loading while checking auth
+  if (isLoading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <div className="loading-spinner"></div>
+      </div>
+    );
+  }
+
+  if (isAuthenticated) {
     return <Navigate to="/dashboard" replace />;
   }
 
@@ -61,46 +76,50 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
 }
 
 function App() {
-  const { loadStoredAuth, fetchStudents, student } = useAuthStore();
-  const [encryptionInitialized, setEncryptionInitialized] = useState(false);
+  const { loadStoredAuth, fetchStudents, student, isAuthenticated } = useAuthStore();
+  const [isInitialized, setIsInitialized] = useState(false);
 
-  // Initialize encryption on app start
+  // Initialize app - load stored auth and encryption
   useEffect(() => {
-    const initEncryption = async () => {
+    const initApp = async () => {
+      // Load stored auth from Zustand persist
+      loadStoredAuth();
+      
+      // Initialize encryption
       try {
         console.log('🔐 Starting E2E encryption initialization...');
         const success = await initializeEncryption();
         console.log('🔐 Encryption initialization result:', success);
         console.log('📋 Encryption status:', getEncryptionStatus());
         
-        // Log debug helper availability
-        if (success) {
+        if (success && encryptionDebug) {
           console.log('💡 Debug utilities available. Type encryptionDebug.help() in console for commands.');
         }
       } catch (error) {
         console.error('❌ Encryption initialization error:', error);
-      } finally {
-        setEncryptionInitialized(true);
       }
+      
+      setIsInitialized(true);
     };
 
-    initEncryption();
-    
-    // Ensure debug utilities are loaded
-    if (encryptionDebug) {
-      console.log('🔧 Encryption debug utilities ready');
-    }
+    initApp();
   }, []);
 
+  // Fetch student data when authenticated
   useEffect(() => {
-    loadStoredAuth();
-  }, []);
-
-  useEffect(() => {
-    if (isAuthenticated() && !student) {
+    if (isInitialized && isAuthenticated && !student) {
       fetchStudents();
     }
-  }, [student]);
+  }, [isInitialized, isAuthenticated, student]);
+
+  // Show loading while initializing
+  if (!isInitialized) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#f5f5f5' }}>
+        <div className="loading-spinner"></div>
+      </div>
+    );
+  }
 
   return (
     <BrowserRouter>
@@ -245,6 +264,14 @@ function App() {
           element={
             <ProtectedRoute>
               <Profile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/subscription"
+          element={
+            <ProtectedRoute>
+              <Subscription />
             </ProtectedRoute>
           }
         />

@@ -12,6 +12,7 @@ export { Doubts } from './Doubts';
 export { Progress } from './Progress';
 export { Profile } from './Profile';
 export { StudyPlan } from './StudyPlan';
+export { Subscription } from './Subscription';
 
 // Static Pages
 export { AboutUs } from './AboutUs';

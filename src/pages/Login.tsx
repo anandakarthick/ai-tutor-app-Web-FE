@@ -1,11 +1,11 @@
 /**
- * Login Page
+ * Login Page - Fixed
  */
 
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, ArrowRight, Loader2, Brain, MessageCircle, BarChart3 } from 'lucide-react';
-import { authApi } from '../services/api';
+import { authApi, setAuthTokens, setStoredUser, setStoredStudent } from '../services/api';
 import { useAuthStore } from '../store/authStore';
 import toast from 'react-hot-toast';
 import logoImage from '../assets/images/logo.png';
@@ -58,13 +58,27 @@ export function Login() {
     setLoading(true);
     try {
       const response = await authApi.loginWithOtp(phone, otp);
-      if (response.success) {
-        setUser(response.data.user);
-        if (response.data.student) {
-          setStudent(response.data.student);
+      if (response.success && response.data) {
+        const { user, student, accessToken, refreshToken } = response.data;
+        
+        // Store tokens in localStorage
+        if (accessToken && refreshToken) {
+          setAuthTokens(accessToken, refreshToken);
+        }
+        
+        // Store user and student data
+        if (user) {
+          setStoredUser(user);
+          setUser(user);
+        }
+        
+        if (student) {
+          setStoredStudent(student);
+          setStudent(student);
         } else {
           await fetchStudents();
         }
+        
         toast.success('Login successful!');
         navigate('/dashboard');
       } else {
