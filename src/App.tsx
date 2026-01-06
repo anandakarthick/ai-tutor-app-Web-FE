@@ -22,12 +22,27 @@ import {
   Profile,
   StudyPlan,
   Subscription,
+  // Company Pages
   AboutUs,
   Careers,
   Blog,
+  PressKit,
+  Partners,
+  // Support Pages
   HelpCenter,
   ContactUs,
+  FAQs,
+  Community,
+  Feedback,
+  // Legal Pages
   PrivacyPolicy,
+  TermsOfService,
+  CookiesPolicy,
+  RefundPolicy,
+  Disclaimer,
+  // Product Pages
+  DownloadApp,
+  RequestDemo,
 } from './pages';
 import { useAuthStore } from './store/authStore';
 import { useSubscriptionStore } from './store/subscriptionStore';
@@ -205,13 +220,30 @@ function App() {
         {/* Landing Page */}
         <Route path="/" element={<Landing />} />
 
-        {/* Static Pages */}
+        {/* Company Pages */}
         <Route path="/about" element={<AboutUs />} />
         <Route path="/careers" element={<Careers />} />
         <Route path="/blog" element={<Blog />} />
+        <Route path="/press" element={<PressKit />} />
+        <Route path="/partners" element={<Partners />} />
+
+        {/* Support Pages */}
         <Route path="/help" element={<HelpCenter />} />
         <Route path="/contact" element={<ContactUs />} />
+        <Route path="/faq" element={<FAQs />} />
+        <Route path="/community" element={<Community />} />
+        <Route path="/feedback" element={<Feedback />} />
+
+        {/* Legal Pages */}
         <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/terms" element={<TermsOfService />} />
+        <Route path="/cookies" element={<CookiesPolicy />} />
+        <Route path="/refund" element={<RefundPolicy />} />
+        <Route path="/disclaimer" element={<Disclaimer />} />
+
+        {/* Product Pages */}
+        <Route path="/download" element={<DownloadApp />} />
+        <Route path="/demo" element={<RequestDemo />} />
 
         {/* Public Routes */}
         <Route
