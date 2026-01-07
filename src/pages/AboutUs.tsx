@@ -4,17 +4,20 @@
 
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Target, Heart, Users, Award, Lightbulb, Globe } from 'lucide-react';
+import { useSettings } from '../context/SettingsContext';
 import logoImage from '../assets/images/logo.png';
 import './StaticPages.css';
 
 export function AboutUs() {
+  const { settings } = useSettings();
+  
   return (
     <div className="static-page">
       <header className="static-header">
         <div className="header-container">
           <Link to="/" className="logo">
-            <img src={logoImage} alt="AI Tutor" />
-            <span>AI Tutor</span>
+            <img src={logoImage} alt={settings.siteName} />
+            <span>{settings.siteName}</span>
           </Link>
           <Link to="/" className="back-link">
             <ArrowLeft size={20} />
@@ -31,7 +34,7 @@ export function AboutUs() {
           <section className="content-section">
             <h2>Our Mission</h2>
             <p>
-              At AI Tutor, we believe that every student deserves access to personalized, 
+              At {settings.siteName}, we believe that every student deserves access to personalized, 
               high-quality education. Our mission is to democratize learning by leveraging 
               cutting-edge artificial intelligence to create an adaptive learning experience 
               that meets each student where they are.
@@ -41,13 +44,13 @@ export function AboutUs() {
           <section className="content-section">
             <h2>Our Story</h2>
             <p>
-              Founded in 2024, AI Tutor was born from a simple observation: traditional 
+              Founded in 2024, {settings.siteName} was born from a simple observation: traditional 
               education often fails to address the unique learning needs of individual students. 
               Our founders, a team of educators and technologists, set out to change this by 
               building an AI-powered platform that adapts to each learner's pace, style, and goals.
             </p>
             <p>
-              Today, AI Tutor serves over 50,000 students across India, helping them achieve 
+              Today, {settings.siteName} serves over 50,000 students across India, helping them achieve 
               their academic goals through personalized lessons, instant doubt resolution, 
               and engaging gamified experiences.
             </p>
@@ -99,7 +102,7 @@ export function AboutUs() {
 
           <section className="cta-section">
             <h2>Join Our Journey</h2>
-            <p>Be part of the education revolution. Start learning with AI Tutor today.</p>
+            <p>Be part of the education revolution. Start learning with {settings.siteName} today.</p>
             <Link to="/register" className="btn btn-primary">
               Get Started Free
             </Link>
@@ -108,7 +111,7 @@ export function AboutUs() {
       </main>
 
       <footer className="static-footer">
-        <p>© 2025 AI Tutor. All rights reserved. Powered by <a href="https://kasoftware.in/" target="_blank" rel="noopener noreferrer">KA Software</a></p>
+        <p>© {new Date().getFullYear()} {settings.siteName}. All rights reserved. Powered by <a href="https://kasoftware.in/" target="_blank" rel="noopener noreferrer">KA Software</a></p>
       </footer>
     </div>
   );

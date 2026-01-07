@@ -4,17 +4,20 @@
 
 import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
+import { useSettings } from '../context/SettingsContext';
 import logoImage from '../assets/images/logo.png';
 import './StaticPages.css';
 
 export function TermsOfService() {
+  const { settings } = useSettings();
+  
   return (
     <div className="static-page">
       <header className="static-header">
         <div className="header-container">
           <Link to="/" className="logo">
-            <img src={logoImage} alt="AI Tutor" />
-            <span>AI Tutor</span>
+            <img src={logoImage} alt={settings.siteName} />
+            <span>{settings.siteName}</span>
           </Link>
           <Link to="/" className="back-link">
             <ArrowLeft size={20} />
@@ -31,7 +34,7 @@ export function TermsOfService() {
           <section className="legal-section">
             <h2>1. Agreement to Terms</h2>
             <p>
-              By accessing or using AI Tutor's services, you agree to be bound by these Terms of Service 
+              By accessing or using {settings.siteName}'s services, you agree to be bound by these Terms of Service 
               and all applicable laws and regulations. If you do not agree with any of these terms, you 
               are prohibited from using or accessing our services.
             </p>
@@ -40,7 +43,7 @@ export function TermsOfService() {
           <section className="legal-section">
             <h2>2. Use License</h2>
             <p>
-              Permission is granted to temporarily access and use AI Tutor for personal, non-commercial 
+              Permission is granted to temporarily access and use {settings.siteName} for personal, non-commercial 
               educational purposes. This license does not include:
             </p>
             <ul>
@@ -66,7 +69,7 @@ export function TermsOfService() {
           <section className="legal-section">
             <h2>4. Subscription and Payments</h2>
             <p>
-              Some features of AI Tutor require a paid subscription. By subscribing, you agree to:
+              Some features of {settings.siteName} require a paid subscription. By subscribing, you agree to:
             </p>
             <ul>
               <li>Pay all fees associated with your subscription plan</li>
@@ -79,9 +82,9 @@ export function TermsOfService() {
           <section className="legal-section">
             <h2>5. Intellectual Property</h2>
             <p>
-              All content, features, and functionality of AI Tutor, including but not limited to text, 
+              All content, features, and functionality of {settings.siteName}, including but not limited to text, 
               graphics, logos, icons, images, audio clips, video clips, data compilations, and software, 
-              are the exclusive property of AI Tutor and are protected by copyright, trademark, and other 
+              are the exclusive property of {settings.siteName} and are protected by copyright, trademark, and other 
               intellectual property laws.
             </p>
           </section>
@@ -103,7 +106,7 @@ export function TermsOfService() {
           <section className="legal-section">
             <h2>7. Disclaimer</h2>
             <p>
-              AI Tutor is provided "as is" without warranties of any kind. We do not guarantee that 
+              {settings.siteName} is provided "as is" without warranties of any kind. We do not guarantee that 
               the service will be uninterrupted, secure, or error-free. Educational content is for 
               informational purposes and should not replace professional educational guidance.
             </p>
@@ -112,7 +115,7 @@ export function TermsOfService() {
           <section className="legal-section">
             <h2>8. Limitation of Liability</h2>
             <p>
-              AI Tutor shall not be liable for any indirect, incidental, special, consequential, or 
+              {settings.siteName} shall not be liable for any indirect, incidental, special, consequential, or 
               punitive damages resulting from your use of or inability to use the service, even if 
               we have been advised of the possibility of such damages.
             </p>
@@ -140,15 +143,15 @@ export function TermsOfService() {
             <h2>11. Contact Information</h2>
             <p>For questions about these Terms of Service, please contact us at:</p>
             <ul>
-              <li>Email: legal@aitutor.in</li>
-              <li>Phone: +91-9876543210</li>
+              <li>Email: {settings.supportEmail}</li>
+              <li>Phone: {settings.supportPhone}</li>
             </ul>
           </section>
         </div>
       </main>
 
       <footer className="static-footer">
-        <p>© 2025 AI Tutor. All rights reserved. Powered by <a href="https://kasoftware.in/" target="_blank" rel="noopener noreferrer">KA Software</a></p>
+        <p>© {new Date().getFullYear()} {settings.siteName}. All rights reserved. Powered by <a href="https://kasoftware.in/" target="_blank" rel="noopener noreferrer">KA Software</a></p>
       </footer>
     </div>
   );

@@ -4,17 +4,20 @@
 
 import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
+import { useSettings } from '../context/SettingsContext';
 import logoImage from '../assets/images/logo.png';
 import './StaticPages.css';
 
 export function PrivacyPolicy() {
+  const { settings } = useSettings();
+  
   return (
     <div className="static-page">
       <header className="static-header">
         <div className="header-container">
           <Link to="/" className="logo">
-            <img src={logoImage} alt="AI Tutor" />
-            <span>AI Tutor</span>
+            <img src={logoImage} alt={settings.siteName} />
+            <span>{settings.siteName}</span>
           </Link>
           <Link to="/" className="back-link">
             <ArrowLeft size={20} />
@@ -31,7 +34,7 @@ export function PrivacyPolicy() {
           <section className="legal-section">
             <h2>1. Introduction</h2>
             <p>
-              Welcome to AI Tutor ("we," "our," or "us"). We are committed to protecting your personal 
+              Welcome to {settings.siteName} ("we," "our," or "us"). We are committed to protecting your personal 
               information and your right to privacy. This Privacy Policy explains how we collect, use, 
               disclose, and safeguard your information when you use our mobile application and website 
               (collectively, the "Platform").
@@ -136,7 +139,7 @@ export function PrivacyPolicy() {
           <section className="legal-section">
             <h2>8. Children's Privacy</h2>
             <p>
-              AI Tutor is designed for students of all ages. For users under 18, we require parental 
+              {settings.siteName} is designed for students of all ages. For users under 18, we require parental 
               or guardian consent for account creation. We do not knowingly collect personal information 
               from children under 13 without verifiable parental consent.
             </p>
@@ -155,16 +158,16 @@ export function PrivacyPolicy() {
             <h2>10. Contact Us</h2>
             <p>If you have questions about this privacy policy, please contact us at:</p>
             <ul>
-              <li>Email: privacy@aitutor.in</li>
-              <li>Phone: +91-9876543210</li>
-              <li>Address: AI Tutor Technologies Pvt. Ltd., 123 Tech Park, Koramangala, Bangalore 560034</li>
+              <li>Email: {settings.supportEmail}</li>
+              <li>Phone: {settings.supportPhone}</li>
+              <li>Address: {settings.address}</li>
             </ul>
           </section>
         </div>
       </main>
 
       <footer className="static-footer">
-        <p>© 2025 AI Tutor. All rights reserved. Powered by <a href="https://kasoftware.in/" target="_blank" rel="noopener noreferrer">KA Software</a></p>
+        <p>© {new Date().getFullYear()} {settings.siteName}. All rights reserved. Powered by <a href="https://kasoftware.in/" target="_blank" rel="noopener noreferrer">KA Software</a></p>
       </footer>
     </div>
   );

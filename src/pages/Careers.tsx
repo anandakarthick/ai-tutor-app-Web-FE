@@ -4,6 +4,7 @@
 
 import { Link } from 'react-router-dom';
 import { ArrowLeft, MapPin, Clock, Briefcase, Code, Palette, Megaphone, Users, ChevronRight } from 'lucide-react';
+import { useSettings } from '../context/SettingsContext';
 import logoImage from '../assets/images/logo.png';
 import './StaticPages.css';
 
@@ -55,13 +56,15 @@ const benefits = [
 ];
 
 export function Careers() {
+  const { settings } = useSettings();
+  
   return (
     <div className="static-page">
       <header className="static-header">
         <div className="header-container">
           <Link to="/" className="logo">
-            <img src={logoImage} alt="AI Tutor" />
-            <span>AI Tutor</span>
+            <img src={logoImage} alt={settings.siteName} />
+            <span>{settings.siteName}</span>
           </Link>
           <Link to="/" className="back-link">
             <ArrowLeft size={20} />
@@ -78,7 +81,7 @@ export function Careers() {
           <section className="content-section">
             <h2>Why Join AI Tutor?</h2>
             <p>
-              At AI Tutor, you'll work on meaningful problems that directly impact students' lives. 
+              At {settings.siteName}, you'll work on meaningful problems that directly impact students' lives. 
               We're building the future of education, and we need passionate individuals who want 
               to make a difference. Join a team that values innovation, collaboration, and continuous learning.
             </p>
@@ -114,7 +117,7 @@ export function Careers() {
                         <span><Clock size={14} /> {position.type}</span>
                       </div>
                     </div>
-                    <a href="mailto:careers@aitutor.in" className="btn btn-outline btn-sm">
+                    <a href={`mailto:${settings.supportEmail}`} className="btn btn-outline btn-sm">
                       Apply Now
                     </a>
                   </div>
@@ -126,7 +129,7 @@ export function Careers() {
           <section className="cta-section">
             <h2>Don't See a Fit?</h2>
             <p>We're always looking for talented individuals. Send us your resume!</p>
-            <a href="mailto:careers@aitutor.in" className="btn btn-primary">
+            <a href={`mailto:${settings.supportEmail}`} className="btn btn-primary">
               Send Resume
             </a>
           </section>
@@ -134,7 +137,7 @@ export function Careers() {
       </main>
 
       <footer className="static-footer">
-        <p>© 2025 AI Tutor. All rights reserved. Powered by <a href="https://kasoftware.in/" target="_blank" rel="noopener noreferrer">KA Software</a></p>
+        <p>© {new Date().getFullYear()} {settings.siteName}. All rights reserved. Powered by <a href="https://kasoftware.in/" target="_blank" rel="noopener noreferrer">KA Software</a></p>
       </footer>
     </div>
   );

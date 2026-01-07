@@ -4,17 +4,20 @@
 
 import { Link } from 'react-router-dom';
 import { ArrowLeft, RefreshCw, Clock, CheckCircle, AlertCircle } from 'lucide-react';
+import { useSettings } from '../context/SettingsContext';
 import logoImage from '../assets/images/logo.png';
 import './StaticPages.css';
 
 export function RefundPolicy() {
+  const { settings } = useSettings();
+  
   return (
     <div className="static-page">
       <header className="static-header">
         <div className="header-container">
           <Link to="/" className="logo">
-            <img src={logoImage} alt="AI Tutor" />
-            <span>AI Tutor</span>
+            <img src={logoImage} alt={settings.siteName} />
+            <span>{settings.siteName}</span>
           </Link>
           <Link to="/" className="back-link">
             <ArrowLeft size={20} />
@@ -49,15 +52,15 @@ export function RefundPolicy() {
           <section className="legal-section">
             <h2>1. Refund Eligibility</h2>
             <p>
-              At AI Tutor, we want you to be completely satisfied with your subscription. We offer 
+              At {settings.siteName}, we want you to be completely satisfied with your subscription. We offer 
               a 7-day money-back guarantee for all new subscriptions. You are eligible for a full 
               refund if:
             </p>
             <ul>
               <li>Your refund request is made within 7 days of the initial purchase</li>
-              <li>This is your first subscription with AI Tutor</li>
+              <li>This is your first subscription with {settings.siteName}</li>
               <li>You have not violated our Terms of Service</li>
-              <li>You have not previously received a refund for an AI Tutor subscription</li>
+              <li>You have not previously received a refund for a {settings.siteName} subscription</li>
             </ul>
           </section>
 
@@ -77,12 +80,12 @@ export function RefundPolicy() {
             <h2>3. How to Request a Refund</h2>
             <p>To request a refund, please follow these steps:</p>
             <ol>
-              <li>Log in to your AI Tutor account</li>
+              <li>Log in to your {settings.siteName} account</li>
               <li>Go to Settings → Subscription → Request Refund</li>
               <li>Fill out the refund request form with your reason for cancellation</li>
               <li>Submit your request</li>
             </ol>
-            <p>Alternatively, you can email us at <strong>support@aitutor.in</strong> with:</p>
+            <p>Alternatively, you can email us at <strong>{settings.supportEmail}</strong> with:</p>
             <ul>
               <li>Your registered email address</li>
               <li>Transaction ID or Order ID</li>
@@ -147,9 +150,9 @@ export function RefundPolicy() {
             <h2>8. Contact Us</h2>
             <p>If you have any questions about our refund policy, please contact us:</p>
             <ul>
-              <li>Email: support@aitutor.in</li>
-              <li>Phone: +91-9876543210</li>
-              <li>WhatsApp: +91-9876543210</li>
+              <li>Email: {settings.supportEmail}</li>
+              <li>Phone: {settings.supportPhone}</li>
+              <li>WhatsApp: {settings.supportPhone}</li>
             </ul>
             <p>Our support team is available Monday to Saturday, 9 AM to 6 PM IST.</p>
           </section>
@@ -157,7 +160,7 @@ export function RefundPolicy() {
       </main>
 
       <footer className="static-footer">
-        <p>© 2025 AI Tutor. All rights reserved. Powered by <a href="https://kasoftware.in/" target="_blank" rel="noopener noreferrer">KA Software</a></p>
+        <p>© {new Date().getFullYear()} {settings.siteName}. All rights reserved. Powered by <a href="https://kasoftware.in/" target="_blank" rel="noopener noreferrer">KA Software</a></p>
       </footer>
     </div>
   );
