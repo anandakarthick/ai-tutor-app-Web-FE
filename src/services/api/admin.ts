@@ -194,6 +194,7 @@ export const deleteSchool = async (id: string) => {
 export interface ClassFilters {
   boardId?: string;
   status?: string;
+  search?: string;
 }
 
 export const getClasses = async (filters: ClassFilters = {}) => {
@@ -204,6 +205,11 @@ export const getClasses = async (filters: ClassFilters = {}) => {
     }
   });
   const response = await adminClient.get(`/admin/classes?${params.toString()}`);
+  return response.data;
+};
+
+export const getClassById = async (id: string) => {
+  const response = await adminClient.get(`/admin/classes/${id}`);
   return response.data;
 };
 
@@ -227,6 +233,7 @@ export const deleteClass = async (id: string) => {
 export interface SubjectFilters {
   classId?: string;
   status?: string;
+  search?: string;
 }
 
 export const getSubjects = async (filters: SubjectFilters = {}) => {
@@ -301,8 +308,24 @@ export const deleteBook = async (id: string) => {
 
 // ==================== SUBSCRIPTION PLANS ====================
 
-export const getPlans = async () => {
-  const response = await adminClient.get('/admin/plans');
+export interface PlanFilters {
+  search?: string;
+  status?: string;
+}
+
+export const getPlans = async (filters: PlanFilters = {}) => {
+  const params = new URLSearchParams();
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value !== undefined && value !== '') {
+      params.append(key, String(value));
+    }
+  });
+  const response = await adminClient.get(`/admin/plans?${params.toString()}`);
+  return response.data;
+};
+
+export const getPlanById = async (id: string) => {
+  const response = await adminClient.get(`/admin/plans/${id}`);
   return response.data;
 };
 
@@ -350,8 +373,25 @@ export const getTransactionById = async (id: string) => {
 
 // ==================== ADMIN USERS ====================
 
-export const getAdminUsers = async () => {
-  const response = await adminClient.get('/admin/admins');
+export interface AdminUserFilters {
+  search?: string;
+  role?: string;
+  status?: string;
+}
+
+export const getAdminUsers = async (filters: AdminUserFilters = {}) => {
+  const params = new URLSearchParams();
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value !== undefined && value !== '') {
+      params.append(key, String(value));
+    }
+  });
+  const response = await adminClient.get(`/admin/admins?${params.toString()}`);
+  return response.data;
+};
+
+export const getAdminUserById = async (id: string) => {
+  const response = await adminClient.get(`/admin/admins/${id}`);
   return response.data;
 };
 
@@ -491,6 +531,7 @@ export default {
   
   // Classes
   getClasses,
+  getClassById,
   createClass,
   updateClass,
   deleteClass,
@@ -511,6 +552,7 @@ export default {
   
   // Plans
   getPlans,
+  getPlanById,
   createPlan,
   updatePlan,
   deletePlan,
@@ -521,6 +563,7 @@ export default {
   
   // Admin Users
   getAdminUsers,
+  getAdminUserById,
   createAdminUser,
   updateAdminUser,
   deleteAdminUser,

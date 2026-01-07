@@ -625,15 +625,23 @@ export function Analytics() {
       </div>
 
       {/* Insights Section */}
-      <div className="data-grid">
+      <div className="data-grid insights-section">
         <div className="card-header">
-          <h3>Performance Insights</h3>
+          <div className="card-header-main">
+            <h3>Performance Insights</h3>
+            <span className="card-header-subtitle">Key metrics and recommendations based on your data</span>
+          </div>
+          <div className="insights-legend">
+            <span className="legend-item positive"><span className="legend-dot"></span>Positive</span>
+            <span className="legend-item warning"><span className="legend-dot"></span>Attention</span>
+            <span className="legend-item info"><span className="legend-dot"></span>Info</span>
+          </div>
         </div>
         <div className="insights-container">
           {insights.map((insight, index) => (
             <div key={index} className={`insight-card ${insight.type}`}>
               <div className="insight-icon">
-                <insight.icon size={20} />
+                <insight.icon size={22} />
               </div>
               <div className="insight-content">
                 <h4>{insight.title}</h4>

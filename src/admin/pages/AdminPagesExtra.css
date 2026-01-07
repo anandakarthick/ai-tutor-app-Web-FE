@@ -536,6 +536,204 @@
   margin: 0;
 }
 
+/* ===== Performance Insights Section ===== */
+.insights-section .card-header {
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.card-header-main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.card-header-main h3 {
+  margin: 0;
+}
+
+.card-header-subtitle {
+  font-size: 12px;
+  color: var(--admin-text-muted);
+  font-weight: 400;
+}
+
+.insights-legend {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--admin-text-muted);
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.legend-item.positive .legend-dot {
+  background: linear-gradient(135deg, #22C55E, #16A34A);
+  box-shadow: 0 2px 6px rgba(34, 197, 94, 0.3);
+}
+
+.legend-item.warning .legend-dot {
+  background: linear-gradient(135deg, #F59E0B, #D97706);
+  box-shadow: 0 2px 6px rgba(245, 158, 11, 0.3);
+}
+
+.legend-item.info .legend-dot {
+  background: linear-gradient(135deg, #3B82F6, #2563EB);
+  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3);
+}
+
+.insights-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  padding: 20px;
+}
+
+.insight-card {
+  display: flex;
+  gap: 16px;
+  padding: 20px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #F8FAFC, #F1F5F9);
+  border: 1px solid var(--admin-border);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.insight-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  border-radius: 4px 0 0 4px;
+}
+
+.insight-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+/* Insight Card Types */
+.insight-card.positive {
+  background: linear-gradient(135deg, #F0FDF4, #DCFCE7);
+  border-color: #BBF7D0;
+}
+
+.insight-card.positive::before {
+  background: linear-gradient(180deg, #22C55E, #16A34A);
+}
+
+.insight-card.positive .insight-icon {
+  background: linear-gradient(135deg, #22C55E, #16A34A);
+  box-shadow: 0 4px 14px rgba(34, 197, 94, 0.3);
+}
+
+.insight-card.warning {
+  background: linear-gradient(135deg, #FFFBEB, #FEF3C7);
+  border-color: #FDE68A;
+}
+
+.insight-card.warning::before {
+  background: linear-gradient(180deg, #F59E0B, #D97706);
+}
+
+.insight-card.warning .insight-icon {
+  background: linear-gradient(135deg, #F59E0B, #D97706);
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.3);
+}
+
+.insight-card.info {
+  background: linear-gradient(135deg, #EFF6FF, #DBEAFE);
+  border-color: #BFDBFE;
+}
+
+.insight-card.info::before {
+  background: linear-gradient(180deg, #3B82F6, #2563EB);
+}
+
+.insight-card.info .insight-icon {
+  background: linear-gradient(135deg, #3B82F6, #2563EB);
+  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
+}
+
+.insight-card.negative {
+  background: linear-gradient(135deg, #FEF2F2, #FEE2E2);
+  border-color: #FECACA;
+}
+
+.insight-card.negative::before {
+  background: linear-gradient(180deg, #EF4444, #DC2626);
+}
+
+.insight-card.negative .insight-icon {
+  background: linear-gradient(135deg, #EF4444, #DC2626);
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.3);
+}
+
+/* Insight Icon */
+.insight-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+}
+
+.insight-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+/* Insight Content */
+.insight-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.insight-content h4 {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--admin-text);
+  margin: 0 0 6px 0;
+}
+
+.insight-content p {
+  font-size: 13px;
+  color: var(--admin-text-muted);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .insights-container {
+    grid-template-columns: 1fr;
+    padding: 16px;
+  }
+  
+  .insight-card {
+    padding: 16px;
+  }
+}
+
 /* Responsive for small screens */
 @media (max-width: 640px) {
   .search-form {
