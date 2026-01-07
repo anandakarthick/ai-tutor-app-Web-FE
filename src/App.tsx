@@ -45,6 +45,24 @@ import {
   RequestDemo,
   Sitemap,
 } from './pages';
+
+// Admin imports
+import {
+  AdminLayout,
+  AdminLogin,
+  AdminDashboard,
+  StudentsManagement,
+  SchoolsManagement,
+  ClassesManagement,
+  SubjectsManagement,
+  SubjectMapping,
+  PlansManagement,
+  TransactionsManagement,
+  Analytics,
+  Reports,
+  AdminUsersManagement,
+  AdminSettings,
+} from './admin';
 import { useAuthStore } from './store/authStore';
 import { useSubscriptionStore } from './store/subscriptionStore';
 import { initializeEncryption, getEncryptionStatus, setSessionTerminatedCallback } from './services/api';
@@ -367,6 +385,30 @@ function App() {
 
         {/* 404 - Redirect to Landing */}
         <Route path="*" element={<Navigate to="/" replace />} />
+
+        {/* Admin Routes */}
+        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<AdminDashboard />} />
+          <Route path="students" element={<StudentsManagement />} />
+          <Route path="schools" element={<SchoolsManagement />} />
+          <Route path="classes" element={<ClassesManagement />} />
+          <Route path="subjects" element={<SubjectsManagement />} />
+          <Route path="subject-mapping" element={<SubjectMapping />} />
+          <Route path="plans" element={<PlansManagement />} />
+          <Route path="transactions" element={<TransactionsManagement />} />
+          <Route path="analytics" element={<Analytics />} />
+          <Route path="reports" element={<Reports />} />
+          <Route path="admins" element={<AdminUsersManagement />} />
+          <Route path="settings" element={<AdminSettings />} />
+          <Route path="settings/payment" element={<AdminSettings />} />
+          <Route path="settings/api-keys" element={<AdminSettings />} />
+          <Route path="settings/app-config" element={<AdminSettings />} />
+          <Route path="settings/notifications" element={<AdminSettings />} />
+          <Route path="settings/security" element={<AdminSettings />} />
+          <Route path="settings/email" element={<AdminSettings />} />
+          <Route path="settings/database" element={<AdminSettings />} />
+        </Route>
       </Routes>
 
       {/* Session Terminated Modal */}
