@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { authApi, contentApi, setAuthTokens, setStoredUser, setStoredStudent } from '../services/api';
 import { useAuthStore } from '../store/authStore';
+import { useSettings } from '../context/SettingsContext';
 import toast from 'react-hot-toast';
 import logoImage from '../assets/images/logo.png';
 import './Auth.css';
@@ -57,6 +58,7 @@ type Step = 1 | 2 | 3 | 'otp';
 export function Register() {
   const navigate = useNavigate();
   const { setUser, setStudent } = useAuthStore();
+  const { settings } = useSettings();
   
   const [currentStep, setCurrentStep] = useState<Step>(1);
   const [loading, setLoading] = useState(false);
@@ -616,7 +618,7 @@ export function Register() {
             <Home size={20} />
             <span>Home</span>
           </Link>
-          <img src={logoImage} alt="AI Tutor" className="auth-logo" />
+          <img src={logoImage} alt={settings.siteName} className="auth-logo" />
           <h1>Create Account</h1>
           <p>Start your learning journey today</p>
         </div>

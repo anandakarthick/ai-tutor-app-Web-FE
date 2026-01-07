@@ -1,5 +1,5 @@
 /**
- * Landing Page - AI Tutor
+ * Landing Page
  */
 
 import { useState, useEffect } from 'react';

@@ -7,6 +7,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, ArrowRight, Loader2, Brain, MessageCircle, BarChart3, Home } from 'lucide-react';
 import { authApi, setAuthTokens, setStoredUser, setStoredStudent } from '../services/api';
 import { useAuthStore } from '../store/authStore';
+import { useSettings } from '../context/SettingsContext';
 import toast from 'react-hot-toast';
 import logoImage from '../assets/images/logo.png';
 import './Auth.css';
@@ -14,6 +15,7 @@ import './Auth.css';
 export function Login() {
   const navigate = useNavigate();
   const { setUser, setStudent, fetchStudents } = useAuthStore();
+  const { settings } = useSettings();
   
   const [step, setStep] = useState<'phone' | 'otp'>('phone');
   const [phone, setPhone] = useState('');
@@ -99,7 +101,7 @@ export function Login() {
             <Home size={20} />
             <span>Home</span>
           </Link>
-          <img src={logoImage} alt="AI Tutor" className="auth-logo" />
+          <img src={logoImage} alt={settings.siteName} className="auth-logo" />
           <h1>Welcome Back!</h1>
           <p>Sign in to continue your learning journey</p>
         </div>

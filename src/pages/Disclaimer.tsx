@@ -104,7 +104,7 @@ export function Disclaimer() {
           <section className="legal-section">
             <h2>7. Limitation of Liability</h2>
             <p>
-              To the fullest extent permitted by law, AI Tutor shall not be liable for any direct, 
+              To the fullest extent permitted by law, {settings.siteName} shall not be liable for any direct, 
               indirect, incidental, special, consequential, or punitive damages arising from:
             </p>
             <ul>

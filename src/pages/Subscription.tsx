@@ -28,6 +28,7 @@ import {
 import { useAuthStore } from '../store/authStore';
 import { useSubscriptionStore } from '../store/subscriptionStore';
 import { subscriptionApi, paymentsApi } from '../services/api';
+import { useSettings } from '../context/SettingsContext';
 import toast from 'react-hot-toast';
 import './Subscription.css';
 
@@ -90,6 +91,7 @@ interface Payment {
 export function Subscription() {
   const { user } = useAuthStore();
   const { checkSubscription } = useSubscriptionStore();
+  const { settings } = useSettings();
   const [activeSubscription, setActiveSubscription] = useState<UserSubscription | null>(null);
   const [transactions, setTransactions] = useState<Payment[]>([]);
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
@@ -163,7 +165,7 @@ export function Subscription() {
         key: keyId,
         amount: amount,
         currency: 'INR',
-        name: 'AI Tutor',
+        name: settings.siteName,
         description: `${plan.displayName} Subscription`,
         order_id: orderId,
         handler: async (response: any) => {

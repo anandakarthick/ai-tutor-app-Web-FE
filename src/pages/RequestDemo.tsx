@@ -84,7 +84,7 @@ export function RequestDemo() {
                   <Users size={24} />
                   <div>
                     <h4>Custom Use Cases</h4>
-                    <p>See how AI Tutor fits your specific needs</p>
+                    <p>See how {settings.siteName} fits your specific needs</p>
                   </div>
                 </li>
                 <li>

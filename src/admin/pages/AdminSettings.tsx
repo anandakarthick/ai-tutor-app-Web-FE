@@ -64,13 +64,13 @@ export function AdminSettings() {
     }
   };
 
-  // Form states
+  // Form states - defaults will be overwritten by API data
   const [generalSettings, setGeneralSettings] = useState({
-    site_name: 'AI Tutor',
-    site_description: 'Your AI-powered learning companion',
-    site_url: 'https://aitutor.com',
-    support_email: 'support@aitutor.com',
-    support_phone: '+91 1800-123-4567',
+    site_name: '',
+    site_description: '',
+    site_url: '',
+    support_email: '',
+    support_phone: '',
     timezone: 'Asia/Kolkata',
     language: 'en',
     maintenance_mode: false,
@@ -115,7 +115,7 @@ export function AdminSettings() {
     subscription_expiry_notification: true,
     daily_report_email: false,
     weekly_report_email: true,
-    report_recipients: 'admin@aitutor.com',
+    report_recipients: '',
   });
 
   const [securitySettings, setSecuritySettings] = useState({
@@ -131,7 +131,7 @@ export function AdminSettings() {
     smtp_port: 587,
     smtp_username: '',
     smtp_from_email: '',
-    smtp_from_name: 'AI Tutor',
+    smtp_from_name: '',
     smtp_use_tls: true,
   });
 

@@ -18,15 +18,16 @@ const categories = [
   { name: 'Privacy & Security', icon: Shield, color: '#14B8A6' },
 ];
 
-const faqs = [
+// Generate FAQs with dynamic site name
+const getFaqs = (siteName: string, supportEmail: string, supportPhone: string) => [
   {
     question: 'How do I create an account?',
     answer: 'Creating an account is easy! Click on "Get Started" or "Sign Up" on the homepage. Enter your phone number, verify with OTP, and fill in your details including your board and class. You\'ll be ready to start learning in minutes!',
     category: 'Getting Started',
   },
   {
-    question: 'What subjects are available on AI Tutor?',
-    answer: 'AI Tutor covers all major subjects including Mathematics, Science, English, Hindi, Physics, Chemistry, Biology, and Social Science. We support CBSE, ICSE, and various State Board curricula from Class 1 to Class 12.',
+    question: `What subjects are available on ${siteName}?`,
+    answer: `${siteName} covers all major subjects including Mathematics, Science, English, Hindi, Physics, Chemistry, Biology, and Social Science. We support CBSE, ICSE, and various State Board curricula from Class 1 to Class 12.`,
     category: 'Getting Started',
   },
   {
@@ -35,8 +36,8 @@ const faqs = [
     category: 'Features & Usage',
   },
   {
-    question: 'Can I use AI Tutor offline?',
-    answer: 'Currently, AI Tutor requires an internet connection for the AI-powered features. However, Annual plan subscribers can download select content for offline viewing.',
+    question: `Can I use ${siteName} offline?`,
+    answer: `Currently, ${siteName} requires an internet connection for the AI-powered features. However, Annual plan subscribers can download select content for offline viewing.`,
     category: 'Features & Usage',
   },
   {
@@ -51,11 +52,11 @@ const faqs = [
   },
   {
     question: 'How do I reset my password?',
-    answer: 'AI Tutor uses OTP-based login, so there\'s no password to remember! Simply enter your registered phone number and verify with the OTP sent to your phone.',
+    answer: `${siteName} uses OTP-based login, so there\'s no password to remember! Simply enter your registered phone number and verify with the OTP sent to your phone.`,
     category: 'Account & Profile',
   },
   {
-    question: 'Is my data safe with AI Tutor?',
+    question: `Is my data safe with ${siteName}?`,
     answer: 'Absolutely! We take data privacy seriously. All your data is encrypted and stored securely. We never share your personal information with third parties. Read our Privacy Policy for more details.',
     category: 'Privacy & Security',
   },
@@ -66,13 +67,14 @@ const faqs = [
   },
   {
     question: 'How do I contact customer support?',
-    answer: 'You can reach us via: Email: support@aitutor.in, Phone: +91-9876543210 (Mon-Sat, 9 AM - 6 PM), or use the in-app chat feature for instant assistance.',
+    answer: `You can reach us via: Email: ${supportEmail}, Phone: ${supportPhone} (Mon-Sat, 9 AM - 6 PM), or use the in-app chat feature for instant assistance.`,
     category: 'Technical Issues',
   },
 ];
 
 export function HelpCenter() {
   const { settings } = useSettings();
+  const faqs = getFaqs(settings.siteName, settings.supportEmail, settings.supportPhone);
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);

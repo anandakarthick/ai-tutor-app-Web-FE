@@ -79,7 +79,7 @@ export function Careers() {
           <p className="subtitle">Join us in transforming education for millions of students</p>
 
           <section className="content-section">
-            <h2>Why Join AI Tutor?</h2>
+            <h2>Why Join {settings.siteName}?</h2>
             <p>
               At {settings.siteName}, you'll work on meaningful problems that directly impact students' lives. 
               We're building the future of education, and we need passionate individuals who want 
