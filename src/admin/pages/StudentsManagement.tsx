@@ -1,30 +1,28 @@
 /**
- * Students Management Page
+ * Students List Page
  */
 
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Users,
   Search,
-  Plus,
   Edit2,
   Trash2,
   Eye,
   X,
-  Check,
   AlertCircle,
   GraduationCap,
-  Mail,
-  Phone,
-  Calendar,
   ChevronLeft,
   ChevronRight,
   Loader2,
   RefreshCw,
   Download,
+  UserCheck,
+  UserX,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { getStudents, getStudentById, updateStudent, deleteStudent, getClasses, getBoards } from '../../services/api/admin';
+import { getStudents, deleteStudent, getClasses, getBoards } from '../../services/api/admin';
 import './AdminPages.css';
 
 interface Student {
@@ -46,7 +44,7 @@ interface Student {
   };
   board?: {
     id: string;
-    boardName: string;
+    name: string;
   };
   subscription?: {
     plan?: {
@@ -64,23 +62,20 @@ interface ClassOption {
 interface BoardOption {
   id: string;
   name: string;
-  fullName: string;
 }
 
 export function StudentsManagement() {
+  const navigate = useNavigate();
   const [students, setStudents] = useState<Student[]>([]);
   const [classes, setClasses] = useState<ClassOption[]>([]);
   const [boards, setBoards] = useState<BoardOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [classFilter, setClassFilter] = useState('all');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [showViewModal, setShowViewModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [viewingStudent, setViewingStudent] = useState<Student | null>(null);
-  const [editingStudent, setEditingStudent] = useState<Student | null>(null);
+  const [classFilter, setClassFilter] = useState('');
+  const [boardFilter, setBoardFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -88,34 +83,22 @@ export function StudentsManagement() {
   const [totalStudents, setTotalStudents] = useState(0);
   const limit = 20;
 
-  const [formData, setFormData] = useState({
-    studentName: '',
-    classId: '',
-    boardId: '',
-    isActive: true,
-  });
-
   useEffect(() => {
     fetchInitialData();
   }, []);
 
   useEffect(() => {
     fetchStudents();
-  }, [currentPage, classFilter, statusFilter]);
+  }, [currentPage, classFilter, boardFilter, statusFilter]);
 
   const fetchInitialData = async () => {
     try {
       const [classesRes, boardsRes] = await Promise.all([
         getClasses(),
-        getBoards(),
+        getBoards()
       ]);
-
-      if (classesRes.success) {
-        setClasses(classesRes.data);
-      }
-      if (boardsRes.success) {
-        setBoards(boardsRes.data);
-      }
+      if (classesRes.success) setClasses(classesRes.data);
+      if (boardsRes.success) setBoards(boardsRes.data);
     } catch (error) {
       console.error('Error fetching initial data:', error);
     }
@@ -124,21 +107,14 @@ export function StudentsManagement() {
   const fetchStudents = async () => {
     setLoading(true);
     try {
-      const filters: any = {
+      const response = await getStudents({
         page: currentPage,
         limit,
-        search: searchQuery || undefined,
-      };
-
-      if (classFilter !== 'all') {
-        filters.classId = classFilter;
-      }
-      if (statusFilter !== 'all') {
-        filters.status = statusFilter;
-      }
-
-      const response = await getStudents(filters);
-
+        search: searchQuery,
+        classId: classFilter || undefined,
+        boardId: boardFilter || undefined,
+        status: statusFilter || undefined,
+      });
       if (response.success) {
         setStudents(response.data.students);
         setTotalPages(response.data.pagination.totalPages);
@@ -152,55 +128,14 @@ export function StudentsManagement() {
     }
   };
 
-  const handleSearch = () => {
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
     setCurrentPage(1);
     fetchStudents();
   };
 
-  const handleViewStudent = async (student: Student) => {
-    try {
-      const response = await getStudentById(student.id);
-      if (response.success) {
-        setViewingStudent(response.data);
-        setShowViewModal(true);
-      }
-    } catch (error) {
-      console.error('Error fetching student details:', error);
-      toast.error('Failed to load student details');
-    }
-  };
-
-  const handleEditStudent = (student: Student) => {
-    setEditingStudent(student);
-    setFormData({
-      studentName: student.studentName,
-      classId: student.class?.id || '',
-      boardId: student.board?.id || '',
-      isActive: student.isActive,
-    });
-    setShowEditModal(true);
-  };
-
-  const handleSaveStudent = async () => {
-    if (!editingStudent) return;
-
-    setSaving(true);
-    try {
-      const response = await updateStudent(editingStudent.id, formData);
-      if (response.success) {
-        toast.success('Student updated successfully');
-        setShowEditModal(false);
-        fetchStudents();
-      }
-    } catch (error: any) {
-      console.error('Error updating student:', error);
-      toast.error(error.response?.data?.message || 'Failed to update student');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleDeleteStudent = async (id: string) => {
+  const handleDelete = async (id: string) => {
+    setDeleting(true);
     try {
       const response = await deleteStudent(id);
       if (response.success) {
@@ -209,8 +144,9 @@ export function StudentsManagement() {
         fetchStudents();
       }
     } catch (error: any) {
-      console.error('Error deleting student:', error);
       toast.error(error.response?.data?.message || 'Failed to delete student');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -222,16 +158,12 @@ export function StudentsManagement() {
     });
   };
 
-  const getInitials = (name: string) => {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-  };
-
   return (
     <div className="admin-page">
       <div className="page-header">
         <div>
           <h1>Students Management</h1>
-          <p>Manage registered students and their accounts</p>
+          <p>View and manage student accounts</p>
         </div>
         <div className="header-actions">
           <button className="btn btn-outline" onClick={fetchStudents}>
@@ -245,8 +177,8 @@ export function StudentsManagement() {
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="stats-grid">
+      {/* Stats Cards */}
+      <div className="stats-grid" style={{ marginBottom: '24px' }}>
         <div className="stat-card">
           <div className="stat-icon" style={{ background: '#3B82F615', color: '#3B82F6' }}>
             <Users size={22} />
@@ -258,15 +190,24 @@ export function StudentsManagement() {
         </div>
         <div className="stat-card">
           <div className="stat-icon" style={{ background: '#22C55E15', color: '#22C55E' }}>
-            <Check size={22} />
+            <UserCheck size={22} />
           </div>
           <div className="stat-content">
-            <p className="stat-title">Active Students</p>
+            <p className="stat-title">Active</p>
             <h3 className="stat-value">{students.filter(s => s.isActive).length}</h3>
           </div>
         </div>
         <div className="stat-card">
-          <div className="stat-icon" style={{ background: '#F9731615', color: '#F97316' }}>
+          <div className="stat-icon" style={{ background: '#EF444415', color: '#EF4444' }}>
+            <UserX size={22} />
+          </div>
+          <div className="stat-content">
+            <p className="stat-title">Inactive</p>
+            <h3 className="stat-value">{students.filter(s => !s.isActive).length}</h3>
+          </div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-icon" style={{ background: '#8B5CF615', color: '#8B5CF6' }}>
             <GraduationCap size={22} />
           </div>
           <div className="stat-content">
@@ -274,329 +215,170 @@ export function StudentsManagement() {
             <h3 className="stat-value">{classes.length}</h3>
           </div>
         </div>
-        <div className="stat-card">
-          <div className="stat-icon" style={{ background: '#8B5CF615', color: '#8B5CF6' }}>
-            <Calendar size={22} />
+      </div>
+
+      {/* Filters */}
+      <div className="filters-section">
+        <form onSubmit={handleSearch} className="search-form">
+          <div className="search-input-wrapper">
+            <Search size={18} />
+            <input
+              type="text"
+              placeholder="Search by name, email, or phone..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            {searchQuery && (
+              <button type="button" className="clear-btn" onClick={() => { setSearchQuery(''); fetchStudents(); }}>
+                <X size={16} />
+              </button>
+            )}
           </div>
-          <div className="stat-content">
-            <p className="stat-title">This Month</p>
-            <h3 className="stat-value">-</h3>
-          </div>
+          <button type="submit" className="btn btn-primary">Search</button>
+        </form>
+        
+        <div className="filter-row">
+          <select value={boardFilter} onChange={(e) => { setBoardFilter(e.target.value); setCurrentPage(1); }}>
+            <option value="">All Boards</option>
+            {boards.map(board => (
+              <option key={board.id} value={board.id}>{board.name}</option>
+            ))}
+          </select>
+          <select value={classFilter} onChange={(e) => { setClassFilter(e.target.value); setCurrentPage(1); }}>
+            <option value="">All Classes</option>
+            {classes.map(cls => (
+              <option key={cls.id} value={cls.id}>{cls.className}</option>
+            ))}
+          </select>
+          <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}>
+            <option value="">All Status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
         </div>
       </div>
 
-      {/* Filter Bar */}
-      <div className="filter-bar">
-        <div className="search-input">
-          <Search size={16} />
-          <input 
-            type="text" 
-            placeholder="Search by name, email, phone..." 
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-          />
-        </div>
-        <select value={classFilter} onChange={(e) => { setClassFilter(e.target.value); setCurrentPage(1); }}>
-          <option value="all">All Classes</option>
-          {classes.map(cls => (
-            <option key={cls.id} value={cls.id}>{cls.className}</option>
-          ))}
-        </select>
-        <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}>
-          <option value="all">All Status</option>
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
-        </select>
-        <button className="btn btn-primary btn-sm" onClick={handleSearch}>
-          <Search size={14} />
-          Search
-        </button>
-      </div>
-
-      {/* Students Table */}
-      <div className="data-grid">
-        <div className="card-header">
-          <h3>All Students ({totalStudents})</h3>
-        </div>
-
+      {/* Table */}
+      <div className="data-table-container">
         {loading ? (
-          <div className="loading-container" style={{ padding: '60px 20px' }}>
-            <Loader2 size={32} className="spinner" />
+          <div className="loading-container">
+            <Loader2 size={40} className="spinner" />
             <p>Loading students...</p>
           </div>
+        ) : students.length === 0 ? (
+          <div className="empty-state">
+            <Users size={64} />
+            <h3>No students found</h3>
+            <p>Try adjusting your search or filters</p>
+          </div>
         ) : (
-          <>
-            <div className="table-responsive">
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>Student</th>
-                    <th>Contact</th>
-                    <th>Class</th>
-                    <th>Board</th>
-                    <th>Plan</th>
-                    <th>Level</th>
-                    <th>Status</th>
-                    <th>Joined</th>
-                    <th style={{ width: '120px', textAlign: 'center' }}>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {students.map((student) => (
-                    <tr key={student.id}>
-                      <td>
-                        <div className="user-cell">
-                          <div className="user-avatar">
-                            {getInitials(student.studentName)}
-                          </div>
-                          <span className="user-name">{student.studentName}</span>
-                        </div>
-                      </td>
-                      <td>
-                        <div className="contact-cell">
-                          <span><Mail size={12} /> {student.user?.email || '-'}</span>
-                          <span><Phone size={12} /> {student.user?.phone || '-'}</span>
-                        </div>
-                      </td>
-                      <td>{student.class?.className || '-'}</td>
-                      <td>{student.board?.boardName || '-'}</td>
-                      <td>
-                        <span className={`plan-badge ${student.subscription?.plan ? 'yearly' : 'none'}`}>
-                          {student.subscription?.plan?.planName || 'Free'}
-                        </span>
-                      </td>
-                      <td>
-                        <span className="number-cell">{student.level}</span>
-                      </td>
-                      <td>
-                        <span className={`status-badge ${student.isActive ? 'active' : 'inactive'}`}>
-                          {student.isActive ? 'Active' : 'Inactive'}
-                        </span>
-                      </td>
-                      <td>
-                        <span className="date-cell">{formatDate(student.createdAt)}</span>
-                      </td>
-                      <td>
-                        <div className="table-actions">
-                          <button 
-                            className="table-action-btn view" 
-                            title="View Details"
-                            onClick={() => handleViewStudent(student)}
-                          >
-                            <Eye size={15} />
-                          </button>
-                          <button 
-                            className="table-action-btn edit" 
-                            title="Edit"
-                            onClick={() => handleEditStudent(student)}
-                          >
-                            <Edit2 size={15} />
-                          </button>
-                          <button 
-                            className="table-action-btn delete" 
-                            title="Delete"
-                            onClick={() => setShowDeleteConfirm(student.id)}
-                          >
-                            <Trash2 size={15} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {students.length === 0 && (
-              <div className="empty-state">
-                <Users size={48} />
-                <h3>No students found</h3>
-                <p>Try adjusting your search or filter criteria</p>
-              </div>
-            )}
-
-            {/* Pagination */}
-            <div className="pagination">
-              <span className="pagination-info">
-                Showing {((currentPage - 1) * limit) + 1}-{Math.min(currentPage * limit, totalStudents)} of {totalStudents} students
-              </span>
-              <div className="pagination-buttons">
-                <button 
-                  className="pagination-btn" 
-                  disabled={currentPage === 1}
-                  onClick={() => setCurrentPage(currentPage - 1)}
-                >
-                  <ChevronLeft size={14} />
-                </button>
-                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  const page = i + 1;
-                  return (
-                    <button 
-                      key={page}
-                      className={`pagination-btn ${currentPage === page ? 'active' : ''}`}
-                      onClick={() => setCurrentPage(page)}
-                    >
-                      {page}
-                    </button>
-                  );
-                })}
-                {totalPages > 5 && <span>...</span>}
-                <button 
-                  className="pagination-btn" 
-                  disabled={currentPage === totalPages}
-                  onClick={() => setCurrentPage(currentPage + 1)}
-                >
-                  <ChevronRight size={14} />
-                </button>
-              </div>
-            </div>
-          </>
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th>Contact</th>
+                <th>Class / Board</th>
+                <th>Level / XP</th>
+                <th>Subscription</th>
+                <th>Status</th>
+                <th>Joined</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {students.map((student) => (
+                <tr key={student.id}>
+                  <td>
+                    <div className="user-cell">
+                      <div className="user-avatar">
+                        {student.studentName?.charAt(0) || 'S'}
+                      </div>
+                      <span className="user-name">{student.studentName}</span>
+                    </div>
+                  </td>
+                  <td>
+                    <div className="contact-cell">
+                      <span>{student.user?.email || '-'}</span>
+                      <small>{student.user?.phone || '-'}</small>
+                    </div>
+                  </td>
+                  <td>
+                    <div className="class-cell">
+                      <span>{student.class?.className || '-'}</span>
+                      <small>{student.board?.name || '-'}</small>
+                    </div>
+                  </td>
+                  <td>
+                    <div className="level-cell">
+                      <span className="level-badge">Lvl {student.level || 1}</span>
+                      <small>{student.xp || 0} XP</small>
+                    </div>
+                  </td>
+                  <td>
+                    <span className={`subscription-badge ${student.subscription?.status || 'none'}`}>
+                      {student.subscription?.plan?.planName || 'Free'}
+                    </span>
+                  </td>
+                  <td>
+                    <span className={`status-badge ${student.isActive ? 'success' : 'inactive'}`}>
+                      {student.isActive ? 'Active' : 'Inactive'}
+                    </span>
+                  </td>
+                  <td>{formatDate(student.createdAt)}</td>
+                  <td>
+                    <div className="table-actions">
+                      <button 
+                        className="action-btn view" 
+                        title="View"
+                        onClick={() => navigate(`/admin/students/${student.id}`)}
+                      >
+                        <Eye size={16} />
+                      </button>
+                      <button 
+                        className="action-btn edit" 
+                        title="Edit"
+                        onClick={() => navigate(`/admin/students/${student.id}/edit`)}
+                      >
+                        <Edit2 size={16} />
+                      </button>
+                      <button 
+                        className="action-btn delete" 
+                        title="Delete"
+                        onClick={() => setShowDeleteConfirm(student.id)}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
       </div>
 
-      {/* View Student Modal */}
-      {showViewModal && viewingStudent && (
-        <div className="modal-overlay" onClick={() => setShowViewModal(false)}>
-          <div className="modal" style={{ maxWidth: '500px' }} onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>Student Details</h3>
-              <button className="modal-close" onClick={() => setShowViewModal(false)}>
-                <X size={18} />
-              </button>
-            </div>
-            <div className="modal-body">
-              <div className="view-profile">
-                <div className="profile-avatar-large">
-                  {getInitials(viewingStudent.studentName)}
-                </div>
-                <h3>{viewingStudent.studentName}</h3>
-                <span className={`status-badge ${viewingStudent.isActive ? 'active' : 'inactive'}`}>
-                  {viewingStudent.isActive ? 'Active' : 'Inactive'}
-                </span>
-              </div>
-              <div className="view-details">
-                <div className="detail-item">
-                  <label>Student ID</label>
-                  <span>{viewingStudent.id.slice(0, 8)}...</span>
-                </div>
-                <div className="detail-item">
-                  <label>Email</label>
-                  <span>{viewingStudent.user?.email || '-'}</span>
-                </div>
-                <div className="detail-item">
-                  <label>Phone</label>
-                  <span>{viewingStudent.user?.phone || '-'}</span>
-                </div>
-                <div className="detail-item">
-                  <label>Class</label>
-                  <span>{viewingStudent.class?.className || '-'}</span>
-                </div>
-                <div className="detail-item">
-                  <label>Board</label>
-                  <span>{viewingStudent.board?.boardName || '-'}</span>
-                </div>
-                <div className="detail-item">
-                  <label>Plan</label>
-                  <span>{viewingStudent.subscription?.plan?.planName || 'Free'}</span>
-                </div>
-                <div className="detail-item">
-                  <label>Level</label>
-                  <span className="highlight">{viewingStudent.level}</span>
-                </div>
-                <div className="detail-item">
-                  <label>XP</label>
-                  <span className="highlight success">{viewingStudent.xp.toLocaleString()}</span>
-                </div>
-                <div className="detail-item">
-                  <label>Joined</label>
-                  <span>{formatDate(viewingStudent.createdAt)}</span>
-                </div>
-              </div>
-            </div>
-            <div className="modal-footer">
-              <button className="btn btn-outline" onClick={() => setShowViewModal(false)}>
-                Close
-              </button>
-              <button className="btn btn-primary" onClick={() => {
-                setShowViewModal(false);
-                handleEditStudent(viewingStudent);
-              }}>
-                <Edit2 size={14} />
-                Edit Student
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Edit Student Modal */}
-      {showEditModal && editingStudent && (
-        <div className="modal-overlay" onClick={() => setShowEditModal(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>Edit Student</h3>
-              <button className="modal-close" onClick={() => setShowEditModal(false)}>
-                <X size={18} />
-              </button>
-            </div>
-            <div className="modal-body">
-              <div className="form-grid">
-                <div className="form-group full-width">
-                  <label>Student Name <span>*</span></label>
-                  <input 
-                    type="text" 
-                    value={formData.studentName}
-                    onChange={(e) => setFormData({...formData, studentName: e.target.value})}
-                    placeholder="Enter student name"
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Class</label>
-                  <select 
-                    value={formData.classId}
-                    onChange={(e) => setFormData({...formData, classId: e.target.value})}
-                  >
-                    <option value="">Select Class</option>
-                    {classes.map(cls => (
-                      <option key={cls.id} value={cls.id}>{cls.className}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label>Board</label>
-                  <select 
-                    value={formData.boardId}
-                    onChange={(e) => setFormData({...formData, boardId: e.target.value})}
-                  >
-                    <option value="">Select Board</option>
-                    {boards.map(board => (
-                      <option key={board.id} value={board.id}>{board.fullName}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label>Status</label>
-                  <select 
-                    value={formData.isActive ? 'active' : 'inactive'}
-                    onChange={(e) => setFormData({...formData, isActive: e.target.value === 'active'})}
-                  >
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-            <div className="modal-footer">
-              <button className="btn btn-outline" onClick={() => setShowEditModal(false)} disabled={saving}>
-                Cancel
-              </button>
-              <button className="btn btn-primary" onClick={handleSaveStudent} disabled={saving}>
-                {saving ? <Loader2 size={14} className="spinner" /> : <Check size={14} />}
-                {saving ? 'Saving...' : 'Save Changes'}
-              </button>
-            </div>
-          </div>
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="pagination">
+          <button 
+            className="pagination-btn" 
+            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+          >
+            <ChevronLeft size={16} />
+            Previous
+          </button>
+          <span className="pagination-info">
+            Page {currentPage} of {totalPages}
+          </span>
+          <button 
+            className="pagination-btn" 
+            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+          >
+            Next
+            <ChevronRight size={16} />
+          </button>
         </div>
       )}
 
@@ -605,26 +387,28 @@ export function StudentsManagement() {
         <div className="modal-overlay" onClick={() => setShowDeleteConfirm(null)}>
           <div className="modal modal-sm" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>Confirm Delete</h3>
+              <h2>Delete Student</h2>
               <button className="modal-close" onClick={() => setShowDeleteConfirm(null)}>
-                <X size={18} />
+                <X size={20} />
               </button>
             </div>
             <div className="modal-body">
-              <div className="delete-confirm">
-                <div className="delete-icon">
-                  <AlertCircle size={32} />
-                </div>
-                <p>Are you sure you want to delete this student?</p>
-                <span>This action will deactivate the student account.</span>
+              <div className="delete-warning">
+                <AlertCircle size={48} />
+                <h3>Are you sure?</h3>
+                <p>This will deactivate the student account. This action can be reversed later.</p>
               </div>
             </div>
             <div className="modal-footer">
               <button className="btn btn-outline" onClick={() => setShowDeleteConfirm(null)}>
                 Cancel
               </button>
-              <button className="btn btn-danger" onClick={() => handleDeleteStudent(showDeleteConfirm)}>
-                <Trash2 size={14} /> Delete
+              <button 
+                className="btn btn-danger" 
+                onClick={() => handleDelete(showDeleteConfirm)}
+                disabled={deleting}
+              >
+                {deleting ? <><Loader2 size={16} className="spinner" /> Deleting...</> : 'Delete'}
               </button>
             </div>
           </div>

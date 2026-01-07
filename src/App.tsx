@@ -51,22 +51,49 @@ import {
   AdminLayout,
   AdminLogin,
   AdminDashboard,
+  // Students
   StudentsManagement,
+  StudentView,
+  StudentEdit,
+  // Schools
   SchoolsManagement,
-  ClassesManagement,
-  SubjectsManagement,
-  SubjectMapping,
-  PlansManagement,
-  TransactionsManagement,
-  Analytics,
-  Reports,
-  AdminUsersManagement,
-  AdminSettings,
-  AdminProfile,
+  SchoolAdd,
+  SchoolEdit,
+  SchoolView,
+  // Boards
   BoardsManagement,
   BoardAdd,
   BoardEdit,
   BoardView,
+  // Classes
+  ClassesManagement,
+  ClassAdd,
+  ClassEdit,
+  ClassView,
+  // Subjects
+  SubjectsManagement,
+  SubjectAdd,
+  SubjectEdit,
+  SubjectView,
+  SubjectMapping,
+  // Plans
+  PlansManagement,
+  PlanAdd,
+  PlanEdit,
+  PlanView,
+  // Transactions
+  TransactionsManagement,
+  TransactionView,
+  // Admin Users
+  AdminUsersManagement,
+  AdminUserAdd,
+  AdminUserEdit,
+  AdminUserView,
+  // Other
+  Analytics,
+  Reports,
+  AdminSettings,
+  AdminProfile,
 } from './admin';
 import { useAuthStore } from './store/authStore';
 import { useSubscriptionStore } from './store/subscriptionStore';
@@ -388,24 +415,58 @@ function App() {
           }
         />
 
-        {/* 404 - Redirect to Landing */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-
         {/* Admin Routes */}
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<AdminDashboard />} />
+          
+          {/* Students */}
           <Route path="students" element={<StudentsManagement />} />
+          <Route path="students/:id" element={<StudentView />} />
+          <Route path="students/:id/edit" element={<StudentEdit />} />
+          
+          {/* Schools */}
           <Route path="schools" element={<SchoolsManagement />} />
+          <Route path="schools/add" element={<SchoolAdd />} />
+          <Route path="schools/:id" element={<SchoolView />} />
+          <Route path="schools/:id/edit" element={<SchoolEdit />} />
+          
+          {/* Boards */}
           <Route path="boards" element={<BoardsManagement />} />
           <Route path="boards/add" element={<BoardAdd />} />
           <Route path="boards/:id" element={<BoardView />} />
           <Route path="boards/:id/edit" element={<BoardEdit />} />
+          
+          {/* Classes */}
           <Route path="classes" element={<ClassesManagement />} />
+          <Route path="classes/add" element={<ClassAdd />} />
+          <Route path="classes/:id" element={<ClassView />} />
+          <Route path="classes/:id/edit" element={<ClassEdit />} />
+          
+          {/* Subjects */}
           <Route path="subjects" element={<SubjectsManagement />} />
+          <Route path="subjects/add" element={<SubjectAdd />} />
+          <Route path="subjects/:id" element={<SubjectView />} />
+          <Route path="subjects/:id/edit" element={<SubjectEdit />} />
           <Route path="subject-mapping" element={<SubjectMapping />} />
+          
+          {/* Plans */}
           <Route path="plans" element={<PlansManagement />} />
+          <Route path="plans/add" element={<PlanAdd />} />
+          <Route path="plans/:id" element={<PlanView />} />
+          <Route path="plans/:id/edit" element={<PlanEdit />} />
+          
+          {/* Transactions */}
           <Route path="transactions" element={<TransactionsManagement />} />
+          <Route path="transactions/:id" element={<TransactionView />} />
+          
+          {/* Admin Users */}
+          <Route path="admin-users" element={<AdminUsersManagement />} />
+          <Route path="admin-users/add" element={<AdminUserAdd />} />
+          <Route path="admin-users/:id" element={<AdminUserView />} />
+          <Route path="admin-users/:id/edit" element={<AdminUserEdit />} />
+          
+          {/* Other */}
           <Route path="analytics" element={<Analytics />} />
           <Route path="reports" element={<Reports />} />
           <Route path="admins" element={<AdminUsersManagement />} />
@@ -419,6 +480,9 @@ function App() {
           <Route path="settings/email" element={<AdminSettings />} />
           <Route path="settings/database" element={<AdminSettings />} />
         </Route>
+
+        {/* 404 - Redirect to Landing */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
 
       {/* Session Terminated Modal */}
