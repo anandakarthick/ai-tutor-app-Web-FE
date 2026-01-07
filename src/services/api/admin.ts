@@ -394,8 +394,24 @@ export const getRecentUserActivity = async (page = 1, limit = 10) => {
 
 // ==================== BOARDS ====================
 
-export const getBoards = async () => {
-  const response = await adminClient.get('/admin/boards');
+export interface BoardFilters {
+  status?: string;
+  search?: string;
+}
+
+export const getBoards = async (filters: BoardFilters = {}) => {
+  const params = new URLSearchParams();
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value !== undefined && value !== '') {
+      params.append(key, String(value));
+    }
+  });
+  const response = await adminClient.get(`/admin/boards?${params.toString()}`);
+  return response.data;
+};
+
+export const getBoardById = async (id: string) => {
+  const response = await adminClient.get(`/admin/boards/${id}`);
   return response.data;
 };
 
@@ -517,6 +533,7 @@ export default {
   
   // Boards
   getBoards,
+  getBoardById,
   createBoard,
   updateBoard,
   deleteBoard,

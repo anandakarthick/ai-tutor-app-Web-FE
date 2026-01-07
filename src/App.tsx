@@ -63,6 +63,10 @@ import {
   AdminUsersManagement,
   AdminSettings,
   AdminProfile,
+  BoardsManagement,
+  BoardAdd,
+  BoardEdit,
+  BoardView,
 } from './admin';
 import { useAuthStore } from './store/authStore';
 import { useSubscriptionStore } from './store/subscriptionStore';
@@ -393,6 +397,10 @@ function App() {
           <Route index element={<AdminDashboard />} />
           <Route path="students" element={<StudentsManagement />} />
           <Route path="schools" element={<SchoolsManagement />} />
+          <Route path="boards" element={<BoardsManagement />} />
+          <Route path="boards/add" element={<BoardAdd />} />
+          <Route path="boards/:id" element={<BoardView />} />
+          <Route path="boards/:id/edit" element={<BoardEdit />} />
           <Route path="classes" element={<ClassesManagement />} />
           <Route path="subjects" element={<SubjectsManagement />} />
           <Route path="subject-mapping" element={<SubjectMapping />} />

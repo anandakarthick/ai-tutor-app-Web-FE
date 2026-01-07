@@ -13,3 +13,7 @@ export { Reports } from './Reports';
 export { AdminUsersManagement } from './AdminUsersManagement';
 export { AdminSettings } from './AdminSettings';
 export { AdminProfile } from './AdminProfile';
+export { BoardsManagement } from './BoardsManagement';
+export { BoardAdd } from './BoardAdd';
+export { BoardEdit } from './BoardEdit';
+export { BoardView } from './BoardView';

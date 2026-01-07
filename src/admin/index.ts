@@ -17,3 +17,7 @@ export { Reports } from './pages/Reports';
 export { AdminUsersManagement } from './pages/AdminUsersManagement';
 export { AdminSettings } from './pages/AdminSettings';
 export { AdminProfile } from './pages/AdminProfile';
+export { BoardsManagement } from './pages/BoardsManagement';
+export { BoardAdd } from './pages/BoardAdd';
+export { BoardEdit } from './pages/BoardEdit';
+export { BoardView } from './pages/BoardView';

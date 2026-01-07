@@ -28,6 +28,7 @@ import {
   Sun,
   Loader2,
   CheckCheck,
+  ClipboardList,
 } from 'lucide-react';
 import { useAdminStore } from '../store/adminStore';
 import { isAdminAuthenticated, clearAdminAuth, getRecentActivity } from '../../services/api/admin';
@@ -87,6 +88,12 @@ const menuItems = [
     label: 'Schools', 
     icon: School, 
     path: '/admin/schools' 
+  },
+  { 
+    id: 'boards', 
+    label: 'Boards', 
+    icon: ClipboardList, 
+    path: '/admin/boards' 
   },
   { 
     id: 'classes', 
