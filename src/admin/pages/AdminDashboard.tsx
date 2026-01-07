@@ -2,7 +2,8 @@
  * Admin Dashboard Page
  */
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Users,
   School,
@@ -11,135 +12,110 @@ import {
   TrendingUp,
   TrendingDown,
   ArrowRight,
-  Calendar,
   Activity,
   DollarSign,
   UserPlus,
   GraduationCap,
-  Clock,
   BarChart3,
-  PieChart,
+  FileText,
+  Settings,
+  Eye,
+  Layers,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import './AdminPages.css';
 
-interface StatCard {
-  title: string;
-  value: string;
-  change: number;
-  changeType: 'increase' | 'decrease';
-  icon: any;
-  color: string;
-}
-
-interface RecentActivity {
-  id: number;
-  type: string;
-  message: string;
-  time: string;
-  icon: any;
-}
-
 export function AdminDashboard() {
-  const [stats, setStats] = useState<StatCard[]>([
-    {
-      title: 'Total Students',
-      value: '12,456',
-      change: 12.5,
-      changeType: 'increase',
-      icon: Users,
-      color: '#3B82F6',
-    },
-    {
-      title: 'Active Schools',
-      value: '245',
-      change: 8.2,
-      changeType: 'increase',
-      icon: School,
-      color: '#22C55E',
-    },
-    {
-      title: 'Total Revenue',
-      value: '₹45,67,890',
-      change: 23.1,
-      changeType: 'increase',
-      icon: DollarSign,
-      color: '#F97316',
-    },
-    {
-      title: 'Active Subscriptions',
-      value: '8,934',
-      change: 5.4,
-      changeType: 'increase',
-      icon: CreditCard,
-      color: '#8B5CF6',
-    },
-  ]);
+  const [selectedPeriod, setSelectedPeriod] = useState('30');
 
-  const [recentActivities] = useState<RecentActivity[]>([
-    { id: 1, type: 'registration', message: 'New student registered: Priya Sharma', time: '2 min ago', icon: UserPlus },
-    { id: 2, type: 'payment', message: 'Payment received: ₹3,000 (Yearly Plan)', time: '15 min ago', icon: CreditCard },
-    { id: 3, type: 'school', message: 'New school added: Delhi Public School', time: '1 hour ago', icon: School },
-    { id: 4, type: 'subscription', message: 'Subscription upgraded: Rahul Verma', time: '2 hours ago', icon: TrendingUp },
-    { id: 5, type: 'registration', message: 'New student registered: Ananya Patel', time: '3 hours ago', icon: UserPlus },
-  ]);
+  const stats = [
+    { title: 'Total Students', value: '12,456', change: '+12.5%', isPositive: true, icon: Users, color: '#3B82F6' },
+    { title: 'Active Subscriptions', value: '8,934', change: '+8.2%', isPositive: true, icon: CreditCard, color: '#22C55E' },
+    { title: 'Total Schools', value: '156', change: '+5.1%', isPositive: true, icon: School, color: '#F97316' },
+    { title: 'Monthly Revenue', value: '₹12.5L', change: '+18.3%', isPositive: true, icon: DollarSign, color: '#8B5CF6' },
+  ];
 
-  const [topSchools] = useState([
-    { name: 'Delhi Public School', students: 456, revenue: '₹4,56,000' },
-    { name: 'St. Xavier\'s High School', students: 389, revenue: '₹3,89,000' },
-    { name: 'Kendriya Vidyalaya', students: 312, revenue: '₹3,12,000' },
-    { name: 'DAV Public School', students: 278, revenue: '₹2,78,000' },
-    { name: 'Ryan International', students: 245, revenue: '₹2,45,000' },
-  ]);
+  const recentActivities = [
+    { id: 1, type: 'subscription', message: 'Priya Sharma subscribed to Yearly Plan', time: '2 mins ago' },
+    { id: 2, type: 'registration', message: 'New student registration from Delhi Public School', time: '15 mins ago' },
+    { id: 3, type: 'payment', message: 'Payment received ₹3,000 - Order #ORD1234', time: '32 mins ago' },
+    { id: 4, type: 'school', message: 'New school added: Ryan International, Pune', time: '1 hour ago' },
+    { id: 5, type: 'subscription', message: 'Rahul Verma renewed Monthly Plan', time: '2 hours ago' },
+  ];
 
-  const [recentTransactions] = useState([
-    { id: 'TXN001', student: 'Priya Sharma', amount: '₹3,000', plan: 'Yearly', status: 'success', date: 'Today' },
-    { id: 'TXN002', student: 'Rahul Verma', amount: '₹299', plan: 'Monthly', status: 'success', date: 'Today' },
-    { id: 'TXN003', student: 'Ananya Patel', amount: '₹3,000', plan: 'Yearly', status: 'pending', date: 'Yesterday' },
-    { id: 'TXN004', student: 'Vikram Singh', amount: '₹299', plan: 'Monthly', status: 'failed', date: 'Yesterday' },
-    { id: 'TXN005', student: 'Neha Gupta', amount: '₹3,000', plan: 'Yearly', status: 'success', date: '2 days ago' },
-  ]);
+  const topSchools = [
+    { name: 'Delhi Public School', students: 456, revenue: '₹13.6L' },
+    { name: "St. Xavier's High School", students: 389, revenue: '₹11.7L' },
+    { name: 'Kendriya Vidyalaya', students: 312, revenue: '₹9.4L' },
+    { name: 'DAV Public School', students: 278, revenue: '₹8.3L' },
+    { name: 'Ryan International', students: 245, revenue: '₹7.4L' },
+  ];
+
+  const recentTransactions = [
+    { id: 'ORD001', student: 'Priya Sharma', plan: 'Yearly', amount: '₹3,000', status: 'success', date: 'Today, 10:30 AM' },
+    { id: 'ORD002', student: 'Rahul Verma', plan: 'Monthly', amount: '₹299', status: 'success', date: 'Today, 09:15 AM' },
+    { id: 'ORD003', student: 'Ananya Patel', plan: 'Yearly', amount: '₹3,000', status: 'pending', date: 'Yesterday' },
+    { id: 'ORD004', student: 'Vikram Singh', plan: 'Monthly', amount: '₹299', status: 'failed', date: 'Yesterday' },
+  ];
+
+  const quickActions = [
+    { title: 'Add Student', icon: UserPlus, link: '/admin/students' },
+    { title: 'Add School', icon: School, link: '/admin/schools' },
+    { title: 'View Reports', icon: FileText, link: '/admin/reports' },
+    { title: 'Analytics', icon: BarChart3, link: '/admin/analytics' },
+    { title: 'Settings', icon: Settings, link: '/admin/settings' },
+    { title: 'Subject Mapping', icon: Layers, link: '/admin/subject-mapping' },
+  ];
+
+  const getActivityIcon = (type: string) => {
+    switch (type) {
+      case 'subscription': return <CreditCard size={16} />;
+      case 'registration': return <UserPlus size={16} />;
+      case 'payment': return <DollarSign size={16} />;
+      case 'school': return <School size={16} />;
+      default: return <Activity size={16} />;
+    }
+  };
 
   return (
-    <div className="admin-page dashboard">
+    <div className="admin-page">
       <div className="page-header">
         <div>
           <h1>Dashboard</h1>
           <p>Welcome back! Here's what's happening with your platform.</p>
         </div>
         <div className="header-actions">
-          <button className="btn btn-outline">
-            <Calendar size={18} />
-            Last 30 Days
-          </button>
-          <button className="btn btn-primary">
-            <BarChart3 size={18} />
-            Generate Report
-          </button>
+          <select 
+            className="date-select"
+            value={selectedPeriod}
+            onChange={(e) => setSelectedPeriod(e.target.value)}
+          >
+            <option value="7">Last 7 Days</option>
+            <option value="30">Last 30 Days</option>
+            <option value="90">Last 90 Days</option>
+            <option value="365">This Year</option>
+          </select>
         </div>
       </div>
 
       {/* Stats Grid */}
       <div className="stats-grid">
-        {stats.map((stat, index) => {
-          const Icon = stat.icon;
-          const TrendIcon = stat.changeType === 'increase' ? TrendingUp : TrendingDown;
-          return (
-            <div key={index} className="stat-card">
-              <div className="stat-icon" style={{ background: `${stat.color}15`, color: stat.color }}>
-                <Icon size={24} />
-              </div>
-              <div className="stat-content">
-                <p className="stat-title">{stat.title}</p>
-                <h3 className="stat-value">{stat.value}</h3>
-                <div className={`stat-change ${stat.changeType}`}>
-                  <TrendIcon size={14} />
-                  <span>{stat.change}% from last month</span>
-                </div>
-              </div>
+        {stats.map((stat, index) => (
+          <div key={index} className="stat-card">
+            <div className="stat-icon" style={{ background: `${stat.color}15`, color: stat.color }}>
+              <stat.icon size={22} />
             </div>
-          );
-        })}
+            <div className="stat-content">
+              <p className="stat-title">{stat.title}</p>
+              <h3 className="stat-value">{stat.value}</h3>
+              <span className={`stat-change ${stat.isPositive ? 'increase' : 'decrease'}`}>
+                {stat.isPositive ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+                {stat.change}
+              </span>
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* Charts Row */}
@@ -148,50 +124,48 @@ export function AdminDashboard() {
           <div className="card-header">
             <h3>Revenue Overview</h3>
             <select className="chart-select">
-              <option>Last 7 Days</option>
-              <option>Last 30 Days</option>
-              <option>Last 90 Days</option>
+              <option>This Month</option>
+              <option>Last Month</option>
+              <option>This Year</option>
             </select>
           </div>
           <div className="chart-placeholder">
             <BarChart3 size={48} />
             <p>Revenue Chart</p>
-            <span>Chart visualization will be added</span>
+            <span>Integration pending</span>
           </div>
         </div>
-
         <div className="chart-card">
           <div className="card-header">
             <h3>User Growth</h3>
             <select className="chart-select">
-              <option>Last 7 Days</option>
-              <option>Last 30 Days</option>
-              <option>Last 90 Days</option>
+              <option>This Month</option>
+              <option>Last Month</option>
+              <option>This Year</option>
             </select>
           </div>
           <div className="chart-placeholder">
-            <Activity size={48} />
-            <p>Growth Chart</p>
-            <span>Chart visualization will be added</span>
+            <TrendingUp size={48} />
+            <p>User Growth Chart</p>
+            <span>Integration pending</span>
           </div>
         </div>
-
         <div className="chart-card small">
           <div className="card-header">
             <h3>Subscription Distribution</h3>
           </div>
-          <div className="chart-placeholder">
-            <PieChart size={48} />
+          <div className="chart-placeholder" style={{ height: '100px' }}>
+            <Activity size={32} />
             <p>Pie Chart</p>
           </div>
           <div className="distribution-stats">
             <div className="dist-item">
               <span className="dot monthly"></span>
-              <span>Monthly: 35%</span>
+              <span>Monthly: 3,245 (36%)</span>
             </div>
             <div className="dist-item">
               <span className="dot yearly"></span>
-              <span>Yearly: 65%</span>
+              <span>Yearly: 5,689 (64%)</span>
             </div>
           </div>
         </div>
@@ -199,44 +173,38 @@ export function AdminDashboard() {
 
       {/* Tables Row */}
       <div className="tables-row">
-        {/* Recent Activities */}
         <div className="table-card">
           <div className="card-header">
             <h3>Recent Activities</h3>
-            <Link to="/admin/activities" className="view-all">
-              View All <ArrowRight size={16} />
+            <Link to="/admin/analytics" className="view-all">
+              View All <ArrowRight size={14} />
             </Link>
           </div>
           <div className="activity-list">
-            {recentActivities.map((activity) => {
-              const Icon = activity.icon;
-              return (
-                <div key={activity.id} className="activity-item">
-                  <div className="activity-icon">
-                    <Icon size={18} />
-                  </div>
-                  <div className="activity-content">
-                    <p>{activity.message}</p>
-                    <span>{activity.time}</span>
-                  </div>
+            {recentActivities.map((activity) => (
+              <div key={activity.id} className="activity-item">
+                <div className="activity-icon">
+                  {getActivityIcon(activity.type)}
                 </div>
-              );
-            })}
+                <div className="activity-content">
+                  <p>{activity.message}</p>
+                  <span>{activity.time}</span>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
-
-        {/* Top Schools */}
         <div className="table-card">
           <div className="card-header">
             <h3>Top Schools</h3>
             <Link to="/admin/schools" className="view-all">
-              View All <ArrowRight size={16} />
+              View All <ArrowRight size={14} />
             </Link>
           </div>
           <table className="data-table">
             <thead>
               <tr>
-                <th>School Name</th>
+                <th>School</th>
                 <th>Students</th>
                 <th>Revenue</th>
               </tr>
@@ -246,7 +214,7 @@ export function AdminDashboard() {
                 <tr key={index}>
                   <td>
                     <div className="school-name">
-                      <School size={16} />
+                      <School size={14} />
                       {school.name}
                     </div>
                   </td>
@@ -260,75 +228,69 @@ export function AdminDashboard() {
       </div>
 
       {/* Recent Transactions */}
-      <div className="table-card full-width">
+      <div className="data-grid" style={{ marginBottom: '24px' }}>
         <div className="card-header">
           <h3>Recent Transactions</h3>
           <Link to="/admin/transactions" className="view-all">
-            View All <ArrowRight size={16} />
+            View All <ArrowRight size={14} />
           </Link>
         </div>
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>Transaction ID</th>
-              <th>Student</th>
-              <th>Amount</th>
-              <th>Plan</th>
-              <th>Status</th>
-              <th>Date</th>
-            </tr>
-          </thead>
-          <tbody>
-            {recentTransactions.map((txn) => (
-              <tr key={txn.id}>
-                <td className="txn-id">{txn.id}</td>
-                <td>{txn.student}</td>
-                <td className="amount">{txn.amount}</td>
-                <td>
-                  <span className={`plan-badge ${txn.plan.toLowerCase()}`}>
-                    {txn.plan}
-                  </span>
-                </td>
-                <td>
-                  <span className={`status-badge ${txn.status}`}>
-                    {txn.status}
-                  </span>
-                </td>
-                <td className="date">{txn.date}</td>
+        <div className="table-responsive">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>Student</th>
+                <th>Plan</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th style={{ width: '60px', textAlign: 'center' }}>Action</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {recentTransactions.map((txn) => (
+                <tr key={txn.id}>
+                  <td>
+                    <span className="id-badge">{txn.id}</span>
+                  </td>
+                  <td>{txn.student}</td>
+                  <td>
+                    <span className={`plan-badge ${txn.plan.toLowerCase()}`}>
+                      {txn.plan}
+                    </span>
+                  </td>
+                  <td className="amount">{txn.amount}</td>
+                  <td>
+                    <span className={`status-badge ${txn.status}`}>
+                      {txn.status}
+                    </span>
+                  </td>
+                  <td className="date">{txn.date}</td>
+                  <td>
+                    <div className="table-actions" style={{ justifyContent: 'center' }}>
+                      <Link to="/admin/transactions" className="table-action-btn view">
+                        <Eye size={15} />
+                      </Link>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Quick Actions */}
       <div className="quick-actions">
         <h3>Quick Actions</h3>
         <div className="actions-grid">
-          <Link to="/admin/students/add" className="action-card">
-            <UserPlus size={24} />
-            <span>Add Student</span>
-          </Link>
-          <Link to="/admin/schools/add" className="action-card">
-            <School size={24} />
-            <span>Add School</span>
-          </Link>
-          <Link to="/admin/classes/add" className="action-card">
-            <GraduationCap size={24} />
-            <span>Add Class</span>
-          </Link>
-          <Link to="/admin/subjects/add" className="action-card">
-            <BookOpen size={24} />
-            <span>Add Subject</span>
-          </Link>
-          <Link to="/admin/plans/add" className="action-card">
-            <CreditCard size={24} />
-            <span>Add Plan</span>
-          </Link>
-          <Link to="/admin/settings" className="action-card">
-            <Activity size={24} />
-            <span>Settings</span>
-          </Link>
+          {quickActions.map((action, index) => (
+            <Link key={index} to={action.link} className="action-card">
+              <action.icon size={22} />
+              <span>{action.title}</span>
+            </Link>
+          ))}
         </div>
       </div>
     </div>

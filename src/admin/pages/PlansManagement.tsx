@@ -1,5 +1,5 @@
 /**
- * Subscription Plans Management Page
+ * Plans Management Page
  */
 
 import { useState } from 'react';
@@ -7,67 +7,73 @@ import {
   CreditCard,
   Search,
   Plus,
-  Edit,
+  Edit2,
   Trash2,
+  Eye,
   X,
   Check,
   AlertCircle,
   Crown,
-  Star,
-  Zap,
   Users,
+  TrendingUp,
+  ChevronLeft,
+  ChevronRight,
+  Percent,
 } from 'lucide-react';
 import './AdminPages.css';
 
-interface SubscriptionPlan {
+interface PlanData {
   id: string;
   name: string;
   displayName: string;
   description: string;
   price: number;
   duration: number;
-  durationType: 'days' | 'months' | 'years';
+  durationUnit: 'days' | 'months' | 'years';
+  discount: number;
   features: string[];
   isPopular: boolean;
-  discount: number;
-  status: 'active' | 'inactive';
   subscriberCount: number;
+  status: 'active' | 'inactive';
 }
 
 export function PlansManagement() {
-  const [plans, setPlans] = useState<SubscriptionPlan[]>([
-    {
-      id: '1',
-      name: 'monthly',
-      displayName: 'Monthly Plan',
-      description: 'Perfect for trying out AI Tutor',
-      price: 299,
-      duration: 1,
-      durationType: 'months',
-      features: ['Unlimited AI Doubt Solving', 'All Subjects Access', 'Smart Quizzes', 'Progress Tracking', 'Study Plans'],
-      isPopular: false,
+  const [plans, setPlans] = useState<PlanData[]>([
+    { 
+      id: 'PLN001', 
+      name: 'monthly', 
+      displayName: 'Monthly Plan', 
+      description: 'Perfect for trying out our platform',
+      price: 299, 
+      duration: 1, 
+      durationUnit: 'months',
       discount: 0,
-      status: 'active',
+      features: ['All Subjects', 'Unlimited Questions', 'Progress Tracking', 'Quiz Access'],
+      isPopular: false,
       subscriberCount: 3245,
+      status: 'active'
     },
-    {
-      id: '2',
-      name: 'yearly',
-      displayName: 'Yearly Plan',
+    { 
+      id: 'PLN002', 
+      name: 'yearly', 
+      displayName: 'Yearly Plan', 
       description: 'Best value for serious learners',
-      price: 3000,
-      duration: 1,
-      durationType: 'years',
-      features: ['Unlimited AI Doubt Solving', 'All Subjects Access', 'Smart Quizzes', 'Progress Tracking', 'Study Plans', 'Priority Support', 'Offline Access'],
-      isPopular: true,
+      price: 3000, 
+      duration: 1, 
+      durationUnit: 'years',
       discount: 17,
-      status: 'active',
+      features: ['All Subjects', 'Unlimited Questions', 'Progress Tracking', 'Quiz Access', 'Priority Support', 'Offline Access'],
+      isPopular: true,
       subscriberCount: 5689,
+      status: 'active'
     },
   ]);
 
+  const [searchQuery, setSearchQuery] = useState('');
   const [showModal, setShowModal] = useState(false);
-  const [editingPlan, setEditingPlan] = useState<SubscriptionPlan | null>(null);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [editingPlan, setEditingPlan] = useState<PlanData | null>(null);
+  const [viewingPlan, setViewingPlan] = useState<PlanData | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [newFeature, setNewFeature] = useState('');
 
@@ -77,31 +83,32 @@ export function PlansManagement() {
     description: '',
     price: 0,
     duration: 1,
-    durationType: 'months' as 'days' | 'months' | 'years',
+    durationUnit: 'months' as 'days' | 'months' | 'years',
+    discount: 0,
     features: [] as string[],
     isPopular: false,
-    discount: 0,
     status: 'active',
   });
 
+  const filteredPlans = plans.filter(plan =>
+    plan.displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    plan.id.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const totalSubscribers = plans.reduce((acc, p) => acc + p.subscriberCount, 0);
+  const totalRevenue = plans.reduce((acc, p) => acc + (p.subscriberCount * p.price), 0);
+
   const handleAddPlan = () => {
     setEditingPlan(null);
-    setFormData({
-      name: '',
-      displayName: '',
-      description: '',
-      price: 0,
-      duration: 1,
-      durationType: 'months',
-      features: [],
-      isPopular: false,
-      discount: 0,
-      status: 'active',
+    setFormData({ 
+      name: '', displayName: '', description: '', price: 0, 
+      duration: 1, durationUnit: 'months', discount: 0, 
+      features: [], isPopular: false, status: 'active' 
     });
     setShowModal(true);
   };
 
-  const handleEditPlan = (plan: SubscriptionPlan) => {
+  const handleEditPlan = (plan: PlanData) => {
     setEditingPlan(plan);
     setFormData({
       name: plan.name,
@@ -109,13 +116,18 @@ export function PlansManagement() {
       description: plan.description,
       price: plan.price,
       duration: plan.duration,
-      durationType: plan.durationType,
+      durationUnit: plan.durationUnit,
+      discount: plan.discount,
       features: [...plan.features],
       isPopular: plan.isPopular,
-      discount: plan.discount,
       status: plan.status,
     });
     setShowModal(true);
+  };
+
+  const handleViewPlan = (plan: PlanData) => {
+    setViewingPlan(plan);
+    setShowViewModal(true);
   };
 
   const handleSavePlan = () => {
@@ -126,11 +138,11 @@ export function PlansManagement() {
           : p
       ));
     } else {
-      const newPlan: SubscriptionPlan = {
-        id: Date.now().toString(),
+      const newPlan: PlanData = {
+        id: `PLN${String(plans.length + 1).padStart(3, '0')}`,
         ...formData,
-        status: formData.status as 'active' | 'inactive',
         subscriberCount: 0,
+        status: formData.status as 'active' | 'inactive',
       };
       setPlans([...plans, newPlan]);
     }
@@ -162,17 +174,17 @@ export function PlansManagement() {
         </div>
         <div className="header-actions">
           <button className="btn btn-primary" onClick={handleAddPlan}>
-            <Plus size={18} />
+            <Plus size={16} />
             Add Plan
           </button>
         </div>
       </div>
 
       {/* Stats */}
-      <div className="stats-grid" style={{ marginBottom: '24px' }}>
+      <div className="stats-grid">
         <div className="stat-card">
           <div className="stat-icon" style={{ background: '#F9731615', color: '#F97316' }}>
-            <CreditCard size={24} />
+            <CreditCard size={22} />
           </div>
           <div className="stat-content">
             <p className="stat-title">Total Plans</p>
@@ -180,91 +192,249 @@ export function PlansManagement() {
           </div>
         </div>
         <div className="stat-card">
-          <div className="stat-icon" style={{ background: '#22C55E15', color: '#22C55E' }}>
-            <Users size={24} />
+          <div className="stat-icon" style={{ background: '#3B82F615', color: '#3B82F6' }}>
+            <Users size={22} />
           </div>
           <div className="stat-content">
             <p className="stat-title">Total Subscribers</p>
-            <h3 className="stat-value">{plans.reduce((acc, p) => acc + p.subscriberCount, 0).toLocaleString()}</h3>
+            <h3 className="stat-value">{totalSubscribers.toLocaleString()}</h3>
           </div>
         </div>
         <div className="stat-card">
-          <div className="stat-icon" style={{ background: '#3B82F615', color: '#3B82F6' }}>
-            <Zap size={24} />
+          <div className="stat-icon" style={{ background: '#22C55E15', color: '#22C55E' }}>
+            <TrendingUp size={22} />
+          </div>
+          <div className="stat-content">
+            <p className="stat-title">Est. Revenue</p>
+            <h3 className="stat-value">₹{(totalRevenue / 100000).toFixed(1)}L</h3>
+          </div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-icon" style={{ background: '#8B5CF615', color: '#8B5CF6' }}>
+            <Crown size={22} />
           </div>
           <div className="stat-content">
             <p className="stat-title">Active Plans</p>
             <h3 className="stat-value">{plans.filter(p => p.status === 'active').length}</h3>
           </div>
         </div>
-        <div className="stat-card">
-          <div className="stat-icon" style={{ background: '#8B5CF615', color: '#8B5CF6' }}>
-            <Crown size={24} />
+      </div>
+
+      {/* Filter Bar */}
+      <div className="filter-bar">
+        <div className="search-input">
+          <Search size={16} />
+          <input 
+            type="text" 
+            placeholder="Search plans..." 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+      </div>
+
+      {/* Plans Table */}
+      <div className="data-grid">
+        <div className="card-header">
+          <h3>All Plans ({filteredPlans.length})</h3>
+        </div>
+        <div className="table-responsive">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Plan Name</th>
+                <th>Price</th>
+                <th>Duration</th>
+                <th>Discount</th>
+                <th>Subscribers</th>
+                <th>Popular</th>
+                <th>Status</th>
+                <th style={{ width: '120px', textAlign: 'center' }}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredPlans.map((plan) => (
+                <tr key={plan.id}>
+                  <td>
+                    <span className="id-badge">{plan.id}</span>
+                  </td>
+                  <td>
+                    <div className="user-cell">
+                      <div className="user-avatar" style={{ background: plan.isPopular ? 'linear-gradient(135deg, #F97316, #FB923C)' : 'linear-gradient(135deg, #3B82F6, #60A5FA)' }}>
+                        {plan.isPopular ? <Crown size={16} /> : <CreditCard size={16} />}
+                      </div>
+                      <div>
+                        <span className="user-name">{plan.displayName}</span>
+                        <span style={{ display: 'block', fontSize: '11px', color: 'var(--admin-text-muted)' }}>{plan.description}</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span className="number-cell success">₹{plan.price.toLocaleString()}</span>
+                  </td>
+                  <td>
+                    {plan.duration} {plan.durationUnit}
+                  </td>
+                  <td>
+                    {plan.discount > 0 ? (
+                      <span className="plan-badge yearly">{plan.discount}% OFF</span>
+                    ) : (
+                      <span style={{ color: 'var(--admin-text-muted)' }}>-</span>
+                    )}
+                  </td>
+                  <td>
+                    <span className="number-cell">{plan.subscriberCount.toLocaleString()}</span>
+                  </td>
+                  <td>
+                    {plan.isPopular ? (
+                      <span className="plan-badge yearly"><Crown size={12} /> Yes</span>
+                    ) : (
+                      <span style={{ color: 'var(--admin-text-muted)' }}>No</span>
+                    )}
+                  </td>
+                  <td>
+                    <span className={`status-badge ${plan.status}`}>
+                      {plan.status}
+                    </span>
+                  </td>
+                  <td>
+                    <div className="table-actions">
+                      <button 
+                        className="table-action-btn view" 
+                        title="View Details"
+                        onClick={() => handleViewPlan(plan)}
+                      >
+                        <Eye size={15} />
+                      </button>
+                      <button 
+                        className="table-action-btn edit" 
+                        title="Edit"
+                        onClick={() => handleEditPlan(plan)}
+                      >
+                        <Edit2 size={15} />
+                      </button>
+                      <button 
+                        className="table-action-btn delete" 
+                        title="Delete"
+                        onClick={() => setShowDeleteConfirm(plan.id)}
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {filteredPlans.length === 0 && (
+          <div className="empty-state">
+            <CreditCard size={48} />
+            <h3>No plans found</h3>
+            <p>Create your first subscription plan</p>
           </div>
-          <div className="stat-content">
-            <p className="stat-title">Monthly Revenue</p>
-            <h3 className="stat-value">₹{(plans.reduce((acc, p) => acc + (p.price * p.subscriberCount), 0) / 12).toLocaleString()}</h3>
+        )}
+
+        {/* Pagination */}
+        <div className="pagination">
+          <span className="pagination-info">Showing 1-{filteredPlans.length} of {plans.length} plans</span>
+          <div className="pagination-buttons">
+            <button className="pagination-btn" disabled>
+              <ChevronLeft size={14} />
+            </button>
+            <button className="pagination-btn active">1</button>
+            <button className="pagination-btn">
+              <ChevronRight size={14} />
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Plans Grid */}
-      <div className="plans-grid">
-        {plans.map((plan) => (
-          <div key={plan.id} className={`plan-card ${plan.isPopular ? 'popular' : ''}`}>
-            {plan.isPopular && (
-              <div className="popular-badge">
-                <Crown size={14} /> Most Popular
-              </div>
-            )}
-            <div className="plan-header">
-              <h3>{plan.displayName}</h3>
-              <p>{plan.description}</p>
-            </div>
-            <div className="plan-price">
-              <span className="currency">₹</span>
-              <span className="amount">{plan.price.toLocaleString()}</span>
-              <span className="period">/{plan.durationType === 'months' ? 'month' : plan.durationType === 'years' ? 'year' : 'days'}</span>
-            </div>
-            {plan.discount > 0 && (
-              <div className="plan-discount">
-                <Star size={14} /> Save {plan.discount}%
-              </div>
-            )}
-            <ul className="plan-features">
-              {plan.features.map((feature, index) => (
-                <li key={index}>
-                  <Check size={16} /> {feature}
-                </li>
-              ))}
-            </ul>
-            <div className="plan-stats">
-              <div>
-                <span className="stat-num">{plan.subscriberCount.toLocaleString()}</span>
-                <span className="stat-label">Subscribers</span>
-              </div>
-              <span className={`status-badge ${plan.status}`}>{plan.status}</span>
-            </div>
-            <div className="plan-actions">
-              <button className="btn btn-outline btn-sm" onClick={() => handleEditPlan(plan)}>
-                <Edit size={14} /> Edit
+      {/* View Plan Modal */}
+      {showViewModal && viewingPlan && (
+        <div className="modal-overlay" onClick={() => setShowViewModal(false)}>
+          <div className="modal" style={{ maxWidth: '500px' }} onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Plan Details</h3>
+              <button className="modal-close" onClick={() => setShowViewModal(false)}>
+                <X size={18} />
               </button>
-              <button className="btn btn-outline btn-sm" onClick={() => setShowDeleteConfirm(plan.id)}>
-                <Trash2 size={14} /> Delete
+            </div>
+            <div className="modal-body">
+              <div className="view-profile">
+                <div className="profile-avatar-large" style={{ background: viewingPlan.isPopular ? 'linear-gradient(135deg, #F97316, #FB923C)' : 'linear-gradient(135deg, #3B82F6, #60A5FA)' }}>
+                  {viewingPlan.isPopular ? <Crown size={28} /> : <CreditCard size={28} />}
+                </div>
+                <h3>{viewingPlan.displayName}</h3>
+                <span className={`status-badge ${viewingPlan.status}`}>{viewingPlan.status}</span>
+              </div>
+              <div className="view-details">
+                <div className="detail-item">
+                  <label>Plan ID</label>
+                  <span>{viewingPlan.id}</span>
+                </div>
+                <div className="detail-item">
+                  <label>Price</label>
+                  <span className="highlight">₹{viewingPlan.price.toLocaleString()}</span>
+                </div>
+                <div className="detail-item">
+                  <label>Duration</label>
+                  <span>{viewingPlan.duration} {viewingPlan.durationUnit}</span>
+                </div>
+                <div className="detail-item">
+                  <label>Discount</label>
+                  <span>{viewingPlan.discount}%</span>
+                </div>
+                <div className="detail-item">
+                  <label>Subscribers</label>
+                  <span className="highlight success">{viewingPlan.subscriberCount.toLocaleString()}</span>
+                </div>
+                <div className="detail-item">
+                  <label>Popular</label>
+                  <span>{viewingPlan.isPopular ? 'Yes' : 'No'}</span>
+                </div>
+                <div className="detail-item full-width">
+                  <label>Description</label>
+                  <span>{viewingPlan.description}</span>
+                </div>
+                <div className="detail-item full-width">
+                  <label>Features ({viewingPlan.features.length})</label>
+                  <div className="features-list" style={{ marginTop: '8px' }}>
+                    {viewingPlan.features.map((feature, index) => (
+                      <span key={index} className="feature-tag">
+                        <Check size={12} /> {feature}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-outline" onClick={() => setShowViewModal(false)}>
+                Close
+              </button>
+              <button className="btn btn-primary" onClick={() => {
+                setShowViewModal(false);
+                handleEditPlan(viewingPlan);
+              }}>
+                <Edit2 size={14} />
+                Edit Plan
               </button>
             </div>
           </div>
-        ))}
-      </div>
+        </div>
+      )}
 
       {/* Add/Edit Modal */}
       {showModal && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal" style={{ maxWidth: '600px' }} onClick={(e) => e.stopPropagation()}>
+          <div className="modal" style={{ maxWidth: '550px' }} onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3>{editingPlan ? 'Edit Plan' : 'Add New Plan'}</h3>
               <button className="modal-close" onClick={() => setShowModal(false)}>
-                <X size={20} />
+                <X size={18} />
               </button>
             </div>
             <div className="modal-body">
@@ -289,11 +459,10 @@ export function PlansManagement() {
                 </div>
                 <div className="form-group full-width">
                   <label>Description</label>
-                  <input 
-                    type="text" 
+                  <textarea 
                     value={formData.description}
                     onChange={(e) => setFormData({...formData, description: e.target.value})}
-                    placeholder="Brief description of the plan"
+                    placeholder="Plan description"
                   />
                 </div>
                 <div className="form-group">
@@ -301,38 +470,38 @@ export function PlansManagement() {
                   <input 
                     type="number" 
                     value={formData.price}
-                    onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value) || 0})}
+                    onChange={(e) => setFormData({...formData, price: parseInt(e.target.value) || 0})}
                     placeholder="299"
                   />
-                </div>
-                <div className="form-group">
-                  <label>Duration</label>
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <input 
-                      type="number" 
-                      value={formData.duration}
-                      onChange={(e) => setFormData({...formData, duration: parseInt(e.target.value) || 1})}
-                      style={{ width: '80px' }}
-                    />
-                    <select 
-                      value={formData.durationType}
-                      onChange={(e) => setFormData({...formData, durationType: e.target.value as 'days' | 'months' | 'years'})}
-                      style={{ flex: 1 }}
-                    >
-                      <option value="days">Days</option>
-                      <option value="months">Months</option>
-                      <option value="years">Years</option>
-                    </select>
-                  </div>
                 </div>
                 <div className="form-group">
                   <label>Discount (%)</label>
                   <input 
                     type="number" 
                     value={formData.discount}
-                    onChange={(e) => setFormData({...formData, discount: parseFloat(e.target.value) || 0})}
+                    onChange={(e) => setFormData({...formData, discount: parseInt(e.target.value) || 0})}
                     placeholder="0"
                   />
+                </div>
+                <div className="form-group">
+                  <label>Duration</label>
+                  <input 
+                    type="number" 
+                    value={formData.duration}
+                    onChange={(e) => setFormData({...formData, duration: parseInt(e.target.value) || 1})}
+                    placeholder="1"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Duration Unit</label>
+                  <select 
+                    value={formData.durationUnit}
+                    onChange={(e) => setFormData({...formData, durationUnit: e.target.value as any})}
+                  >
+                    <option value="days">Days</option>
+                    <option value="months">Months</option>
+                    <option value="years">Years</option>
+                  </select>
                 </div>
                 <div className="form-group">
                   <label>Status</label>
@@ -345,6 +514,7 @@ export function PlansManagement() {
                   </select>
                 </div>
                 <div className="form-group">
+                  <label>&nbsp;</label>
                   <label className="checkbox-label-inline">
                     <input 
                       type="checkbox" 
@@ -361,30 +531,32 @@ export function PlansManagement() {
                       type="text" 
                       value={newFeature}
                       onChange={(e) => setNewFeature(e.target.value)}
-                      placeholder="Add a feature"
                       onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addFeature())}
+                      placeholder="Type a feature and press Enter"
                     />
-                    <button type="button" className="btn btn-primary btn-sm" onClick={addFeature}>
-                      <Plus size={16} />
+                    <button type="button" className="btn btn-sm btn-primary" onClick={addFeature}>
+                      <Plus size={14} />
                     </button>
                   </div>
-                  <div className="features-list">
-                    {formData.features.map((feature, index) => (
-                      <div key={index} className="feature-tag">
-                        {feature}
-                        <button type="button" onClick={() => removeFeature(index)}>
-                          <X size={14} />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
+                  {formData.features.length > 0 && (
+                    <div className="features-list">
+                      {formData.features.map((feature, index) => (
+                        <span key={index} className="feature-tag">
+                          {feature}
+                          <button type="button" onClick={() => removeFeature(index)}>
+                            <X size={12} />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
             <div className="modal-footer">
               <button className="btn btn-outline" onClick={() => setShowModal(false)}>Cancel</button>
               <button className="btn btn-primary" onClick={handleSavePlan}>
-                <Check size={18} />
+                <Check size={14} />
                 {editingPlan ? 'Save Changes' : 'Add Plan'}
               </button>
             </div>
@@ -395,23 +567,26 @@ export function PlansManagement() {
       {/* Delete Confirmation */}
       {showDeleteConfirm && (
         <div className="modal-overlay" onClick={() => setShowDeleteConfirm(null)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
+          <div className="modal modal-sm" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3>Confirm Delete</h3>
               <button className="modal-close" onClick={() => setShowDeleteConfirm(null)}>
-                <X size={20} />
+                <X size={18} />
               </button>
             </div>
             <div className="modal-body">
               <div className="delete-confirm">
-                <AlertCircle size={48} color="#EF4444" />
-                <p>Are you sure you want to delete this plan? Existing subscribers will not be affected.</p>
+                <div className="delete-icon">
+                  <AlertCircle size={32} />
+                </div>
+                <p>Are you sure you want to delete this plan?</p>
+                <span>Existing subscriptions will not be affected.</span>
               </div>
             </div>
             <div className="modal-footer">
               <button className="btn btn-outline" onClick={() => setShowDeleteConfirm(null)}>Cancel</button>
               <button className="btn btn-danger" onClick={() => handleDeletePlan(showDeleteConfirm)}>
-                <Trash2 size={18} /> Delete Plan
+                <Trash2 size={14} /> Delete
               </button>
             </div>
           </div>
