@@ -62,6 +62,7 @@ import {
   Reports,
   AdminUsersManagement,
   AdminSettings,
+  AdminProfile,
 } from './admin';
 import { useAuthStore } from './store/authStore';
 import { useSubscriptionStore } from './store/subscriptionStore';
@@ -400,6 +401,7 @@ function App() {
           <Route path="analytics" element={<Analytics />} />
           <Route path="reports" element={<Reports />} />
           <Route path="admins" element={<AdminUsersManagement />} />
+          <Route path="profile" element={<AdminProfile />} />
           <Route path="settings" element={<AdminSettings />} />
           <Route path="settings/payment" element={<AdminSettings />} />
           <Route path="settings/api-keys" element={<AdminSettings />} />

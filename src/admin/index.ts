@@ -16,3 +16,4 @@ export { Analytics } from './pages/Analytics';
 export { Reports } from './pages/Reports';
 export { AdminUsersManagement } from './pages/AdminUsersManagement';
 export { AdminSettings } from './pages/AdminSettings';
+export { AdminProfile } from './pages/AdminProfile';

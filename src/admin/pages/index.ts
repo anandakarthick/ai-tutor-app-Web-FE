@@ -12,3 +12,4 @@ export { Analytics } from './Analytics';
 export { Reports } from './Reports';
 export { AdminUsersManagement } from './AdminUsersManagement';
 export { AdminSettings } from './AdminSettings';
+export { AdminProfile } from './AdminProfile';

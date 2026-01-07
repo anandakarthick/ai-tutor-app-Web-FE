@@ -88,6 +88,16 @@ export const getAdminProfile = async () => {
   return response.data;
 };
 
+export const updateAdminProfile = async (data: { fullName?: string; phone?: string; profileImageUrl?: string }) => {
+  const response = await adminClient.put('/admin/auth/profile', data);
+  return response.data;
+};
+
+export const changeAdminPassword = async (data: { currentPassword: string; newPassword: string }) => {
+  const response = await adminClient.put('/admin/auth/change-password', data);
+  return response.data;
+};
+
 // ==================== DASHBOARD ====================
 
 export const getDashboardStats = async () => {
@@ -439,6 +449,8 @@ export default {
   adminLogin,
   adminLogout,
   getAdminProfile,
+  updateAdminProfile,
+  changeAdminPassword,
   setAdminAuth,
   clearAdminAuth,
   isAdminAuthenticated,
