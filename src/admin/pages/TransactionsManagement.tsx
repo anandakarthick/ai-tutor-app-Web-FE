@@ -8,15 +8,13 @@ import {
   Search,
   Download,
   Eye,
-  Filter,
-  Calendar,
-  TrendingUp,
-  CreditCard,
   RefreshCw,
   CheckCircle,
   XCircle,
   Clock,
   X,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import './AdminPages.css';
 
@@ -65,10 +63,10 @@ export function TransactionsManagement() {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'success': return <CheckCircle size={16} color="#22C55E" />;
-      case 'failed': return <XCircle size={16} color="#EF4444" />;
-      case 'pending': return <Clock size={16} color="#F59E0B" />;
-      case 'refunded': return <RefreshCw size={16} color="#3B82F6" />;
+      case 'success': return <CheckCircle size={14} />;
+      case 'failed': return <XCircle size={14} />;
+      case 'pending': return <Clock size={14} />;
+      case 'refunded': return <RefreshCw size={14} />;
       default: return null;
     }
   };
@@ -82,11 +80,11 @@ export function TransactionsManagement() {
         </div>
         <div className="header-actions">
           <button className="btn btn-outline">
-            <Download size={18} />
+            <Download size={16} />
             Export CSV
           </button>
           <button className="btn btn-outline">
-            <RefreshCw size={18} />
+            <RefreshCw size={16} />
             Refresh
           </button>
         </div>
@@ -96,7 +94,7 @@ export function TransactionsManagement() {
       <div className="stats-grid">
         <div className="stat-card">
           <div className="stat-icon" style={{ background: '#22C55E15', color: '#22C55E' }}>
-            <Wallet size={24} />
+            <Wallet size={22} />
           </div>
           <div className="stat-content">
             <p className="stat-title">Total Revenue</p>
@@ -105,7 +103,7 @@ export function TransactionsManagement() {
         </div>
         <div className="stat-card">
           <div className="stat-icon" style={{ background: '#3B82F615', color: '#3B82F6' }}>
-            <CheckCircle size={24} />
+            <CheckCircle size={22} />
           </div>
           <div className="stat-content">
             <p className="stat-title">Successful</p>
@@ -114,7 +112,7 @@ export function TransactionsManagement() {
         </div>
         <div className="stat-card">
           <div className="stat-icon" style={{ background: '#F59E0B15', color: '#F59E0B' }}>
-            <Clock size={24} />
+            <Clock size={22} />
           </div>
           <div className="stat-content">
             <p className="stat-title">Pending</p>
@@ -123,7 +121,7 @@ export function TransactionsManagement() {
         </div>
         <div className="stat-card">
           <div className="stat-icon" style={{ background: '#EF444415', color: '#EF4444' }}>
-            <XCircle size={24} />
+            <XCircle size={22} />
           </div>
           <div className="stat-content">
             <p className="stat-title">Failed</p>
@@ -135,7 +133,7 @@ export function TransactionsManagement() {
       {/* Filter Bar */}
       <div className="filter-bar">
         <div className="search-input">
-          <Search size={18} />
+          <Search size={16} />
           <input 
             type="text" 
             placeholder="Search by name, order ID, or payment ID..." 
@@ -163,59 +161,95 @@ export function TransactionsManagement() {
         <div className="card-header">
           <h3>All Transactions ({filteredTransactions.length})</h3>
         </div>
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>Order ID</th>
-              <th>Student</th>
-              <th>Plan</th>
-              <th>Amount</th>
-              <th>Status</th>
-              <th>Payment ID</th>
-              <th>Date</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredTransactions.map((txn) => (
-              <tr key={txn.id}>
-                <td className="txn-id">{txn.orderId}</td>
-                <td>
-                  <div>
-                    <p style={{ fontWeight: 500 }}>{txn.studentName}</p>
-                    <span style={{ fontSize: '12px', color: '#64748B' }}>{txn.studentEmail}</span>
-                  </div>
-                </td>
-                <td>
-                  <span className={`plan-badge ${txn.planName.toLowerCase().includes('yearly') ? 'yearly' : 'monthly'}`}>
-                    {txn.planName}
-                  </span>
-                </td>
-                <td className="amount">₹{txn.amount.toLocaleString()}</td>
-                <td>
-                  <span className={`status-badge ${txn.status}`}>
-                    {getStatusIcon(txn.status)}
-                    {txn.status}
-                  </span>
-                </td>
-                <td style={{ fontFamily: 'monospace', fontSize: '12px' }}>{txn.paymentId}</td>
-                <td className="date">{txn.createdAt}</td>
-                <td>
-                  <button className="action-btn" title="View Details" onClick={() => setSelectedTransaction(txn)}>
-                    <Eye size={16} />
-                  </button>
-                </td>
+        <div className="table-responsive">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>Student</th>
+                <th>Plan</th>
+                <th>Amount</th>
+                <th>Payment ID</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th style={{ width: '80px', textAlign: 'center' }}>Action</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {filteredTransactions.map((txn) => (
+                <tr key={txn.id}>
+                  <td>
+                    <span className="id-badge">{txn.orderId}</span>
+                  </td>
+                  <td>
+                    <div className="user-cell">
+                      <div className="user-avatar">
+                        {txn.studentName.split(' ').map(n => n[0]).join('')}
+                      </div>
+                      <div>
+                        <span className="user-name">{txn.studentName}</span>
+                        <span style={{ display: 'block', fontSize: '11px', color: 'var(--admin-text-muted)' }}>{txn.studentEmail}</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span className={`plan-badge ${txn.planName.toLowerCase().includes('yearly') ? 'yearly' : 'monthly'}`}>
+                      {txn.planName}
+                    </span>
+                  </td>
+                  <td>
+                    <span className="number-cell success">₹{txn.amount.toLocaleString()}</span>
+                  </td>
+                  <td>
+                    <span style={{ fontFamily: 'monospace', fontSize: '11px', color: 'var(--admin-text-muted)' }}>
+                      {txn.paymentId}
+                    </span>
+                  </td>
+                  <td>
+                    <span className={`status-badge ${txn.status}`}>
+                      {getStatusIcon(txn.status)}
+                      {txn.status}
+                    </span>
+                  </td>
+                  <td>
+                    <span className="date-cell">{txn.createdAt}</span>
+                  </td>
+                  <td>
+                    <div className="table-actions" style={{ justifyContent: 'center' }}>
+                      <button 
+                        className="table-action-btn view" 
+                        title="View Details"
+                        onClick={() => setSelectedTransaction(txn)}
+                      >
+                        <Eye size={15} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
+        {filteredTransactions.length === 0 && (
+          <div className="empty-state">
+            <Wallet size={48} />
+            <h3>No transactions found</h3>
+            <p>Try adjusting your search or filter criteria</p>
+          </div>
+        )}
+
+        {/* Pagination */}
         <div className="pagination">
           <span className="pagination-info">Showing 1-{filteredTransactions.length} of {transactions.length} transactions</span>
           <div className="pagination-buttons">
-            <button className="pagination-btn" disabled>Previous</button>
+            <button className="pagination-btn" disabled>
+              <ChevronLeft size={14} />
+            </button>
             <button className="pagination-btn active">1</button>
-            <button className="pagination-btn">Next</button>
+            <button className="pagination-btn">
+              <ChevronRight size={14} />
+            </button>
           </div>
         </div>
       </div>
@@ -223,60 +257,59 @@ export function TransactionsManagement() {
       {/* Transaction Detail Modal */}
       {selectedTransaction && (
         <div className="modal-overlay" onClick={() => setSelectedTransaction(null)}>
-          <div className="modal" style={{ maxWidth: '500px' }} onClick={(e) => e.stopPropagation()}>
+          <div className="modal" style={{ maxWidth: '480px' }} onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3>Transaction Details</h3>
               <button className="modal-close" onClick={() => setSelectedTransaction(null)}>
-                <X size={20} />
+                <X size={18} />
               </button>
             </div>
             <div className="modal-body">
-              <div className="transaction-detail">
-                <div className="detail-row">
-                  <span className="label">Order ID</span>
-                  <span className="value">{selectedTransaction.orderId}</span>
+              <div className="view-profile">
+                <div className="profile-avatar-large" style={{ background: 'linear-gradient(135deg, #22C55E, #4ADE80)' }}>
+                  <Wallet size={28} />
                 </div>
-                <div className="detail-row">
-                  <span className="label">Payment ID</span>
-                  <span className="value">{selectedTransaction.paymentId}</span>
+                <h3>₹{selectedTransaction.amount.toLocaleString()}</h3>
+                <span className={`status-badge ${selectedTransaction.status}`}>
+                  {getStatusIcon(selectedTransaction.status)}
+                  {selectedTransaction.status}
+                </span>
+              </div>
+              <div className="view-details">
+                <div className="detail-item">
+                  <label>Order ID</label>
+                  <span>{selectedTransaction.orderId}</span>
                 </div>
-                <div className="detail-row">
-                  <span className="label">Student</span>
-                  <span className="value">{selectedTransaction.studentName}</span>
+                <div className="detail-item">
+                  <label>Payment ID</label>
+                  <span style={{ fontFamily: 'monospace', fontSize: '12px' }}>{selectedTransaction.paymentId}</span>
                 </div>
-                <div className="detail-row">
-                  <span className="label">Email</span>
-                  <span className="value">{selectedTransaction.studentEmail}</span>
+                <div className="detail-item">
+                  <label>Student</label>
+                  <span>{selectedTransaction.studentName}</span>
                 </div>
-                <div className="detail-row">
-                  <span className="label">Plan</span>
-                  <span className="value">{selectedTransaction.planName}</span>
+                <div className="detail-item">
+                  <label>Email</label>
+                  <span>{selectedTransaction.studentEmail}</span>
                 </div>
-                <div className="detail-row">
-                  <span className="label">Amount</span>
-                  <span className="value amount">₹{selectedTransaction.amount.toLocaleString()}</span>
+                <div className="detail-item">
+                  <label>Plan</label>
+                  <span>{selectedTransaction.planName}</span>
                 </div>
-                <div className="detail-row">
-                  <span className="label">Status</span>
-                  <span className={`status-badge ${selectedTransaction.status}`}>
-                    {getStatusIcon(selectedTransaction.status)}
-                    {selectedTransaction.status}
-                  </span>
+                <div className="detail-item">
+                  <label>Payment Method</label>
+                  <span>{selectedTransaction.paymentMethod}</span>
                 </div>
-                <div className="detail-row">
-                  <span className="label">Payment Method</span>
-                  <span className="value">{selectedTransaction.paymentMethod}</span>
-                </div>
-                <div className="detail-row">
-                  <span className="label">Date</span>
-                  <span className="value">{selectedTransaction.createdAt}</span>
+                <div className="detail-item full-width">
+                  <label>Date</label>
+                  <span>{selectedTransaction.createdAt}</span>
                 </div>
               </div>
             </div>
             <div className="modal-footer">
               {selectedTransaction.status === 'success' && (
                 <button className="btn btn-outline">
-                  <RefreshCw size={16} /> Process Refund
+                  <RefreshCw size={14} /> Process Refund
                 </button>
               )}
               <button className="btn btn-outline" onClick={() => setSelectedTransaction(null)}>
