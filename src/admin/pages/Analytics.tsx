@@ -2,7 +2,7 @@
  * Analytics Dashboard Page
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   BarChart3,
   TrendingUp,
@@ -13,7 +13,6 @@ import {
   BookOpen,
   HelpCircle,
   Download,
-  Calendar,
   ArrowUpRight,
   ArrowDownRight,
   Eye,
@@ -22,28 +21,92 @@ import {
   Activity,
   Zap,
   GraduationCap,
+  Loader2,
+  RefreshCw,
 } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { getAnalyticsOverview, getDashboardStats } from '../../services/api/admin';
 import './AdminPages.css';
 import './AdminPagesExtra.css';
 
+interface Stats {
+  totalStudents: number;
+  activeSubscriptions: number;
+  monthlyRevenue: number;
+  studentGrowth: string;
+}
+
+interface DailyData {
+  date: string;
+  count?: string;
+  total?: string;
+}
+
 export function Analytics() {
   const [dateRange, setDateRange] = useState('30');
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<Stats | null>(null);
+  const [dailyRegistrations, setDailyRegistrations] = useState<DailyData[]>([]);
+  const [dailyRevenue, setDailyRevenue] = useState<DailyData[]>([]);
+  const [subscriptionStats, setSubscriptionStats] = useState<any[]>([]);
 
-  const stats = [
-    { title: 'Total Users', value: '12,456', change: '+12.5%', isPositive: true, icon: Users, color: '#3B82F6' },
-    { title: 'Active Learners', value: '8,934', change: '+8.2%', isPositive: true, icon: Target, color: '#22C55E' },
-    { title: 'Questions Asked', value: '45,678', change: '+23.1%', isPositive: true, icon: HelpCircle, color: '#F97316' },
-    { title: 'Avg. Session Time', value: '24 min', change: '+5.4%', isPositive: true, icon: Clock, color: '#8B5CF6' },
+  useEffect(() => {
+    fetchAnalytics();
+  }, [dateRange]);
+
+  const fetchAnalytics = async () => {
+    setLoading(true);
+    try {
+      const [statsResponse, analyticsResponse] = await Promise.all([
+        getDashboardStats(),
+        getAnalyticsOverview(dateRange),
+      ]);
+
+      if (statsResponse.success) {
+        setStats(statsResponse.data);
+      }
+
+      if (analyticsResponse.success) {
+        setDailyRegistrations(analyticsResponse.data.dailyRegistrations || []);
+        setDailyRevenue(analyticsResponse.data.dailyRevenue || []);
+        setSubscriptionStats(analyticsResponse.data.subscriptionStats || []);
+      }
+    } catch (error) {
+      console.error('Error fetching analytics:', error);
+      toast.error('Failed to load analytics data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Calculate stats from data
+  const totalUsers = stats?.totalStudents || 0;
+  const activeUsers = stats?.activeSubscriptions || 0;
+
+  const statCards = [
+    { title: 'Total Users', value: totalUsers.toLocaleString(), change: stats?.studentGrowth || '+0%', isPositive: true, icon: Users, color: '#3B82F6' },
+    { title: 'Active Learners', value: activeUsers.toLocaleString(), change: '+8.2%', isPositive: true, icon: Target, color: '#22C55E' },
+    { title: 'Questions Asked', value: '-', change: '-', isPositive: true, icon: HelpCircle, color: '#F97316' },
+    { title: 'Avg. Session Time', value: '-', change: '-', isPositive: true, icon: Clock, color: '#8B5CF6' },
   ];
 
-  const monthlyData = [
-    { month: 'Jul', users: 8500, revenue: 125000, questions: 32000 },
-    { month: 'Aug', users: 9200, revenue: 145000, questions: 35000 },
-    { month: 'Sep', users: 9800, revenue: 160000, questions: 38000 },
-    { month: 'Oct', users: 10500, revenue: 180000, questions: 41000 },
-    { month: 'Nov', users: 11200, revenue: 195000, questions: 43000 },
-    { month: 'Dec', users: 12456, revenue: 220000, questions: 45678 },
-  ];
+  // Process revenue data for chart
+  const monthlyData = dailyRevenue.length > 0 
+    ? dailyRevenue.slice(-6).map(d => ({
+        month: new Date(d.date).toLocaleDateString('en-US', { month: 'short' }),
+        revenue: parseInt(d.total || '0'),
+      }))
+    : [
+        { month: 'Jul', revenue: 125000 },
+        { month: 'Aug', revenue: 145000 },
+        { month: 'Sep', revenue: 160000 },
+        { month: 'Oct', revenue: 180000 },
+        { month: 'Nov', revenue: 195000 },
+        { month: 'Dec', revenue: 220000 },
+      ];
+
+  const maxRevenue = Math.max(...monthlyData.map(m => m.revenue), 1);
+  const totalRevenue = monthlyData.reduce((a, b) => a + b.revenue, 0);
 
   const topSubjects = [
     { name: 'Mathematics', percentage: 35, color: '#F97316', students: 4360 },
@@ -76,8 +139,16 @@ export function Analytics() {
     { type: 'info', title: 'Top Performer', description: 'Mathematics remains the most popular subject with 35% usage', icon: Award },
   ];
 
-  const maxRevenue = Math.max(...monthlyData.map(m => m.revenue));
-  const totalRevenue = monthlyData.reduce((a, b) => a + b.revenue, 0);
+  if (loading) {
+    return (
+      <div className="admin-page">
+        <div className="loading-container">
+          <Loader2 size={40} className="spinner" />
+          <p>Loading analytics...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="admin-page">
@@ -87,6 +158,10 @@ export function Analytics() {
           <p>Monitor platform performance and user engagement</p>
         </div>
         <div className="header-actions">
+          <button className="btn btn-outline" onClick={fetchAnalytics}>
+            <RefreshCw size={16} />
+            Refresh
+          </button>
           <select 
             className="date-select"
             value={dateRange}
@@ -106,7 +181,7 @@ export function Analytics() {
 
       {/* Stats Grid */}
       <div className="stats-grid">
-        {stats.map((stat, index) => (
+        {statCards.map((stat, index) => (
           <div key={index} className="stat-card">
             <div className="stat-icon" style={{ background: `${stat.color}15`, color: stat.color }}>
               <stat.icon size={22} />
@@ -114,10 +189,12 @@ export function Analytics() {
             <div className="stat-content">
               <p className="stat-title">{stat.title}</p>
               <h3 className="stat-value">{stat.value}</h3>
-              <span className={`stat-change ${stat.isPositive ? 'increase' : 'decrease'}`}>
-                {stat.isPositive ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
-                {stat.change}
-              </span>
+              {stat.change !== '-' && (
+                <span className={`stat-change ${stat.isPositive ? 'increase' : 'decrease'}`}>
+                  {stat.isPositive ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
+                  {stat.change}
+                </span>
+              )}
             </div>
           </div>
         ))}

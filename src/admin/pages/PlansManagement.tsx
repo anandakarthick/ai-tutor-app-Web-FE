@@ -2,7 +2,7 @@
  * Plans Management Page
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   CreditCard,
   Search,
@@ -18,92 +18,93 @@ import {
   TrendingUp,
   ChevronLeft,
   ChevronRight,
-  Percent,
+  Loader2,
+  RefreshCw,
 } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { getPlans, createPlan, updatePlan, deletePlan } from '../../services/api/admin';
 import './AdminPages.css';
 
 interface PlanData {
   id: string;
-  name: string;
+  planName: string;
   displayName: string;
-  description: string;
+  description?: string;
   price: number;
-  duration: number;
-  durationUnit: 'days' | 'months' | 'years';
-  discount: number;
-  features: string[];
-  isPopular: boolean;
-  subscriberCount: number;
-  status: 'active' | 'inactive';
+  originalPrice?: number;
+  durationMonths: number;
+  features?: string[];
+  isPopular?: boolean;
+  isActive: boolean;
+  displayOrder: number;
+  subscriberCount?: number;
 }
 
 export function PlansManagement() {
-  const [plans, setPlans] = useState<PlanData[]>([
-    { 
-      id: 'PLN001', 
-      name: 'monthly', 
-      displayName: 'Monthly Plan', 
-      description: 'Perfect for trying out our platform',
-      price: 299, 
-      duration: 1, 
-      durationUnit: 'months',
-      discount: 0,
-      features: ['All Subjects', 'Unlimited Questions', 'Progress Tracking', 'Quiz Access'],
-      isPopular: false,
-      subscriberCount: 3245,
-      status: 'active'
-    },
-    { 
-      id: 'PLN002', 
-      name: 'yearly', 
-      displayName: 'Yearly Plan', 
-      description: 'Best value for serious learners',
-      price: 3000, 
-      duration: 1, 
-      durationUnit: 'years',
-      discount: 17,
-      features: ['All Subjects', 'Unlimited Questions', 'Progress Tracking', 'Quiz Access', 'Priority Support', 'Offline Access'],
-      isPopular: true,
-      subscriberCount: 5689,
-      status: 'active'
-    },
-  ]);
-
+  const [plans, setPlans] = useState<PlanData[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
   const [editingPlan, setEditingPlan] = useState<PlanData | null>(null);
   const [viewingPlan, setViewingPlan] = useState<PlanData | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
   const [newFeature, setNewFeature] = useState('');
 
   const [formData, setFormData] = useState({
-    name: '',
+    planName: '',
     displayName: '',
     description: '',
     price: 0,
-    duration: 1,
-    durationUnit: 'months' as 'days' | 'months' | 'years',
-    discount: 0,
+    originalPrice: 0,
+    durationMonths: 1,
     features: [] as string[],
     isPopular: false,
-    status: 'active',
+    isActive: true,
+    displayOrder: 0,
   });
+
+  useEffect(() => {
+    fetchPlans();
+  }, []);
+
+  const fetchPlans = async () => {
+    setLoading(true);
+    try {
+      const response = await getPlans();
+      if (response.success) {
+        setPlans(response.data);
+      }
+    } catch (error) {
+      console.error('Error fetching plans:', error);
+      toast.error('Failed to load plans');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredPlans = plans.filter(plan =>
     plan.displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    plan.id.toLowerCase().includes(searchQuery.toLowerCase())
+    plan.planName.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const totalSubscribers = plans.reduce((acc, p) => acc + p.subscriberCount, 0);
-  const totalRevenue = plans.reduce((acc, p) => acc + (p.subscriberCount * p.price), 0);
+  const totalSubscribers = plans.reduce((acc, p) => acc + (p.subscriberCount || 0), 0);
+  const totalRevenue = plans.reduce((acc, p) => acc + ((p.subscriberCount || 0) * p.price), 0);
 
   const handleAddPlan = () => {
     setEditingPlan(null);
-    setFormData({ 
-      name: '', displayName: '', description: '', price: 0, 
-      duration: 1, durationUnit: 'months', discount: 0, 
-      features: [], isPopular: false, status: 'active' 
+    setFormData({
+      planName: '',
+      displayName: '',
+      description: '',
+      price: 0,
+      originalPrice: 0,
+      durationMonths: 1,
+      features: [],
+      isPopular: false,
+      isActive: true,
+      displayOrder: plans.length + 1,
     });
     setShowModal(true);
   };
@@ -111,16 +112,16 @@ export function PlansManagement() {
   const handleEditPlan = (plan: PlanData) => {
     setEditingPlan(plan);
     setFormData({
-      name: plan.name,
+      planName: plan.planName,
       displayName: plan.displayName,
-      description: plan.description,
+      description: plan.description || '',
       price: plan.price,
-      duration: plan.duration,
-      durationUnit: plan.durationUnit,
-      discount: plan.discount,
-      features: [...plan.features],
-      isPopular: plan.isPopular,
-      status: plan.status,
+      originalPrice: plan.originalPrice || 0,
+      durationMonths: plan.durationMonths,
+      features: plan.features || [],
+      isPopular: plan.isPopular || false,
+      isActive: plan.isActive,
+      displayOrder: plan.displayOrder,
     });
     setShowModal(true);
   };
@@ -130,28 +131,47 @@ export function PlansManagement() {
     setShowViewModal(true);
   };
 
-  const handleSavePlan = () => {
-    if (editingPlan) {
-      setPlans(plans.map(p => 
-        p.id === editingPlan.id 
-          ? { ...p, ...formData } 
-          : p
-      ));
-    } else {
-      const newPlan: PlanData = {
-        id: `PLN${String(plans.length + 1).padStart(3, '0')}`,
-        ...formData,
-        subscriberCount: 0,
-        status: formData.status as 'active' | 'inactive',
-      };
-      setPlans([...plans, newPlan]);
+  const handleSavePlan = async () => {
+    if (!formData.planName || !formData.displayName || formData.price <= 0) {
+      toast.error('Please fill in required fields');
+      return;
     }
-    setShowModal(false);
+
+    setSaving(true);
+    try {
+      if (editingPlan) {
+        const response = await updatePlan(editingPlan.id, formData);
+        if (response.success) {
+          toast.success('Plan updated successfully');
+        }
+      } else {
+        const response = await createPlan(formData);
+        if (response.success) {
+          toast.success('Plan created successfully');
+        }
+      }
+      setShowModal(false);
+      fetchPlans();
+    } catch (error: any) {
+      console.error('Error saving plan:', error);
+      toast.error(error.response?.data?.message || 'Failed to save plan');
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleDeletePlan = (id: string) => {
-    setPlans(plans.filter(p => p.id !== id));
-    setShowDeleteConfirm(null);
+  const handleDeletePlan = async (id: string) => {
+    try {
+      const response = await deletePlan(id);
+      if (response.success) {
+        toast.success('Plan deleted successfully');
+        setShowDeleteConfirm(null);
+        fetchPlans();
+      }
+    } catch (error: any) {
+      console.error('Error deleting plan:', error);
+      toast.error(error.response?.data?.message || 'Failed to delete plan');
+    }
   };
 
   const addFeature = () => {
@@ -165,6 +185,19 @@ export function PlansManagement() {
     setFormData({ ...formData, features: formData.features.filter((_, i) => i !== index) });
   };
 
+  const getDurationText = (months: number) => {
+    if (months === 1) return '1 Month';
+    if (months === 3) return '3 Months';
+    if (months === 6) return '6 Months';
+    if (months === 12) return '1 Year';
+    return `${months} Months`;
+  };
+
+  const getDiscount = (price: number, originalPrice: number) => {
+    if (!originalPrice || originalPrice <= price) return 0;
+    return Math.round(((originalPrice - price) / originalPrice) * 100);
+  };
+
   return (
     <div className="admin-page">
       <div className="page-header">
@@ -173,6 +206,10 @@ export function PlansManagement() {
           <p>Manage subscription plans and pricing</p>
         </div>
         <div className="header-actions">
+          <button className="btn btn-outline" onClick={fetchPlans}>
+            <RefreshCw size={16} />
+            Refresh
+          </button>
           <button className="btn btn-primary" onClick={handleAddPlan}>
             <Plus size={16} />
             Add Plan
@@ -215,7 +252,7 @@ export function PlansManagement() {
           </div>
           <div className="stat-content">
             <p className="stat-title">Active Plans</p>
-            <h3 className="stat-value">{plans.filter(p => p.status === 'active').length}</h3>
+            <h3 className="stat-value">{plans.filter(p => p.isActive).length}</h3>
           </div>
         </div>
       </div>
@@ -238,118 +275,122 @@ export function PlansManagement() {
         <div className="card-header">
           <h3>All Plans ({filteredPlans.length})</h3>
         </div>
-        <div className="table-responsive">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Plan Name</th>
-                <th>Price</th>
-                <th>Duration</th>
-                <th>Discount</th>
-                <th>Subscribers</th>
-                <th>Popular</th>
-                <th>Status</th>
-                <th style={{ width: '120px', textAlign: 'center' }}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredPlans.map((plan) => (
-                <tr key={plan.id}>
-                  <td>
-                    <span className="id-badge">{plan.id}</span>
-                  </td>
-                  <td>
-                    <div className="user-cell">
-                      <div className="user-avatar" style={{ background: plan.isPopular ? 'linear-gradient(135deg, #F97316, #FB923C)' : 'linear-gradient(135deg, #3B82F6, #60A5FA)' }}>
-                        {plan.isPopular ? <Crown size={16} /> : <CreditCard size={16} />}
-                      </div>
-                      <div>
-                        <span className="user-name">{plan.displayName}</span>
-                        <span style={{ display: 'block', fontSize: '11px', color: 'var(--admin-text-muted)' }}>{plan.description}</span>
-                      </div>
-                    </div>
-                  </td>
-                  <td>
-                    <span className="number-cell success">₹{plan.price.toLocaleString()}</span>
-                  </td>
-                  <td>
-                    {plan.duration} {plan.durationUnit}
-                  </td>
-                  <td>
-                    {plan.discount > 0 ? (
-                      <span className="plan-badge yearly">{plan.discount}% OFF</span>
-                    ) : (
-                      <span style={{ color: 'var(--admin-text-muted)' }}>-</span>
-                    )}
-                  </td>
-                  <td>
-                    <span className="number-cell">{plan.subscriberCount.toLocaleString()}</span>
-                  </td>
-                  <td>
-                    {plan.isPopular ? (
-                      <span className="plan-badge yearly"><Crown size={12} /> Yes</span>
-                    ) : (
-                      <span style={{ color: 'var(--admin-text-muted)' }}>No</span>
-                    )}
-                  </td>
-                  <td>
-                    <span className={`status-badge ${plan.status}`}>
-                      {plan.status}
-                    </span>
-                  </td>
-                  <td>
-                    <div className="table-actions">
-                      <button 
-                        className="table-action-btn view" 
-                        title="View Details"
-                        onClick={() => handleViewPlan(plan)}
-                      >
-                        <Eye size={15} />
-                      </button>
-                      <button 
-                        className="table-action-btn edit" 
-                        title="Edit"
-                        onClick={() => handleEditPlan(plan)}
-                      >
-                        <Edit2 size={15} />
-                      </button>
-                      <button 
-                        className="table-action-btn delete" 
-                        title="Delete"
-                        onClick={() => setShowDeleteConfirm(plan.id)}
-                      >
-                        <Trash2 size={15} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
 
-        {filteredPlans.length === 0 && (
-          <div className="empty-state">
-            <CreditCard size={48} />
-            <h3>No plans found</h3>
-            <p>Create your first subscription plan</p>
+        {loading ? (
+          <div className="loading-container" style={{ padding: '60px 20px' }}>
+            <Loader2 size={32} className="spinner" />
+            <p>Loading plans...</p>
           </div>
+        ) : (
+          <>
+            <div className="table-responsive">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Plan Name</th>
+                    <th>Price</th>
+                    <th>Duration</th>
+                    <th>Discount</th>
+                    <th>Subscribers</th>
+                    <th>Popular</th>
+                    <th>Status</th>
+                    <th style={{ width: '120px', textAlign: 'center' }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredPlans.map((plan) => (
+                    <tr key={plan.id}>
+                      <td>
+                        <div className="user-cell">
+                          <div className="user-avatar" style={{ background: plan.isPopular ? 'linear-gradient(135deg, #F97316, #FB923C)' : 'linear-gradient(135deg, #3B82F6, #60A5FA)' }}>
+                            {plan.isPopular ? <Crown size={16} /> : <CreditCard size={16} />}
+                          </div>
+                          <div>
+                            <span className="user-name">{plan.displayName}</span>
+                            <span style={{ display: 'block', fontSize: '11px', color: 'var(--admin-text-muted)' }}>{plan.planName}</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <span className="number-cell success">₹{plan.price.toLocaleString()}</span>
+                      </td>
+                      <td>{getDurationText(plan.durationMonths)}</td>
+                      <td>
+                        {getDiscount(plan.price, plan.originalPrice || 0) > 0 ? (
+                          <span className="plan-badge yearly">{getDiscount(plan.price, plan.originalPrice || 0)}% OFF</span>
+                        ) : (
+                          <span style={{ color: 'var(--admin-text-muted)' }}>-</span>
+                        )}
+                      </td>
+                      <td>
+                        <span className="number-cell">{(plan.subscriberCount || 0).toLocaleString()}</span>
+                      </td>
+                      <td>
+                        {plan.isPopular ? (
+                          <span className="plan-badge yearly"><Crown size={12} /> Yes</span>
+                        ) : (
+                          <span style={{ color: 'var(--admin-text-muted)' }}>No</span>
+                        )}
+                      </td>
+                      <td>
+                        <span className={`status-badge ${plan.isActive ? 'active' : 'inactive'}`}>
+                          {plan.isActive ? 'Active' : 'Inactive'}
+                        </span>
+                      </td>
+                      <td>
+                        <div className="table-actions">
+                          <button 
+                            className="table-action-btn view" 
+                            title="View Details"
+                            onClick={() => handleViewPlan(plan)}
+                          >
+                            <Eye size={15} />
+                          </button>
+                          <button 
+                            className="table-action-btn edit" 
+                            title="Edit"
+                            onClick={() => handleEditPlan(plan)}
+                          >
+                            <Edit2 size={15} />
+                          </button>
+                          <button 
+                            className="table-action-btn delete" 
+                            title="Delete"
+                            onClick={() => setShowDeleteConfirm(plan.id)}
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {filteredPlans.length === 0 && (
+              <div className="empty-state">
+                <CreditCard size={48} />
+                <h3>No plans found</h3>
+                <p>Create your first subscription plan</p>
+              </div>
+            )}
+
+            {/* Pagination */}
+            <div className="pagination">
+              <span className="pagination-info">Showing 1-{filteredPlans.length} of {plans.length} plans</span>
+              <div className="pagination-buttons">
+                <button className="pagination-btn" disabled>
+                  <ChevronLeft size={14} />
+                </button>
+                <button className="pagination-btn active">1</button>
+                <button className="pagination-btn" disabled>
+                  <ChevronRight size={14} />
+                </button>
+              </div>
+            </div>
+          </>
         )}
-
-        {/* Pagination */}
-        <div className="pagination">
-          <span className="pagination-info">Showing 1-{filteredPlans.length} of {plans.length} plans</span>
-          <div className="pagination-buttons">
-            <button className="pagination-btn" disabled>
-              <ChevronLeft size={14} />
-            </button>
-            <button className="pagination-btn active">1</button>
-            <button className="pagination-btn">
-              <ChevronRight size={14} />
-            </button>
-          </div>
-        </div>
       </div>
 
       {/* View Plan Modal */}
@@ -368,12 +409,12 @@ export function PlansManagement() {
                   {viewingPlan.isPopular ? <Crown size={28} /> : <CreditCard size={28} />}
                 </div>
                 <h3>{viewingPlan.displayName}</h3>
-                <span className={`status-badge ${viewingPlan.status}`}>{viewingPlan.status}</span>
+                <span className={`status-badge ${viewingPlan.isActive ? 'active' : 'inactive'}`}>{viewingPlan.isActive ? 'Active' : 'Inactive'}</span>
               </div>
               <div className="view-details">
                 <div className="detail-item">
-                  <label>Plan ID</label>
-                  <span>{viewingPlan.id}</span>
+                  <label>Plan Name</label>
+                  <span>{viewingPlan.planName}</span>
                 </div>
                 <div className="detail-item">
                   <label>Price</label>
@@ -381,15 +422,15 @@ export function PlansManagement() {
                 </div>
                 <div className="detail-item">
                   <label>Duration</label>
-                  <span>{viewingPlan.duration} {viewingPlan.durationUnit}</span>
+                  <span>{getDurationText(viewingPlan.durationMonths)}</span>
                 </div>
                 <div className="detail-item">
                   <label>Discount</label>
-                  <span>{viewingPlan.discount}%</span>
+                  <span>{getDiscount(viewingPlan.price, viewingPlan.originalPrice || 0)}%</span>
                 </div>
                 <div className="detail-item">
                   <label>Subscribers</label>
-                  <span className="highlight success">{viewingPlan.subscriberCount.toLocaleString()}</span>
+                  <span className="highlight success">{(viewingPlan.subscriberCount || 0).toLocaleString()}</span>
                 </div>
                 <div className="detail-item">
                   <label>Popular</label>
@@ -397,18 +438,20 @@ export function PlansManagement() {
                 </div>
                 <div className="detail-item full-width">
                   <label>Description</label>
-                  <span>{viewingPlan.description}</span>
+                  <span>{viewingPlan.description || '-'}</span>
                 </div>
-                <div className="detail-item full-width">
-                  <label>Features ({viewingPlan.features.length})</label>
-                  <div className="features-list" style={{ marginTop: '8px' }}>
-                    {viewingPlan.features.map((feature, index) => (
-                      <span key={index} className="feature-tag">
-                        <Check size={12} /> {feature}
-                      </span>
-                    ))}
+                {viewingPlan.features && viewingPlan.features.length > 0 && (
+                  <div className="detail-item full-width">
+                    <label>Features ({viewingPlan.features.length})</label>
+                    <div className="features-list" style={{ marginTop: '8px' }}>
+                      {viewingPlan.features.map((feature, index) => (
+                        <span key={index} className="feature-tag">
+                          <Check size={12} /> {feature}
+                        </span>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
             <div className="modal-footer">
@@ -443,8 +486,8 @@ export function PlansManagement() {
                   <label>Plan Name (Internal) <span>*</span></label>
                   <input 
                     type="text" 
-                    value={formData.name}
-                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    value={formData.planName}
+                    onChange={(e) => setFormData({...formData, planName: e.target.value})}
                     placeholder="e.g., monthly"
                   />
                 </div>
@@ -475,43 +518,43 @@ export function PlansManagement() {
                   />
                 </div>
                 <div className="form-group">
-                  <label>Discount (%)</label>
+                  <label>Original Price (₹)</label>
                   <input 
                     type="number" 
-                    value={formData.discount}
-                    onChange={(e) => setFormData({...formData, discount: parseInt(e.target.value) || 0})}
-                    placeholder="0"
+                    value={formData.originalPrice}
+                    onChange={(e) => setFormData({...formData, originalPrice: parseInt(e.target.value) || 0})}
+                    placeholder="For discount calculation"
                   />
                 </div>
                 <div className="form-group">
-                  <label>Duration</label>
-                  <input 
-                    type="number" 
-                    value={formData.duration}
-                    onChange={(e) => setFormData({...formData, duration: parseInt(e.target.value) || 1})}
-                    placeholder="1"
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Duration Unit</label>
+                  <label>Duration (Months)</label>
                   <select 
-                    value={formData.durationUnit}
-                    onChange={(e) => setFormData({...formData, durationUnit: e.target.value as any})}
+                    value={formData.durationMonths}
+                    onChange={(e) => setFormData({...formData, durationMonths: parseInt(e.target.value)})}
                   >
-                    <option value="days">Days</option>
-                    <option value="months">Months</option>
-                    <option value="years">Years</option>
+                    <option value={1}>1 Month</option>
+                    <option value={3}>3 Months</option>
+                    <option value={6}>6 Months</option>
+                    <option value={12}>1 Year</option>
                   </select>
                 </div>
                 <div className="form-group">
                   <label>Status</label>
                   <select 
-                    value={formData.status}
-                    onChange={(e) => setFormData({...formData, status: e.target.value})}
+                    value={formData.isActive ? 'active' : 'inactive'}
+                    onChange={(e) => setFormData({...formData, isActive: e.target.value === 'active'})}
                   >
                     <option value="active">Active</option>
                     <option value="inactive">Inactive</option>
                   </select>
+                </div>
+                <div className="form-group">
+                  <label>Display Order</label>
+                  <input 
+                    type="number" 
+                    value={formData.displayOrder}
+                    onChange={(e) => setFormData({...formData, displayOrder: parseInt(e.target.value) || 0})}
+                  />
                 </div>
                 <div className="form-group">
                   <label>&nbsp;</label>
@@ -554,10 +597,12 @@ export function PlansManagement() {
               </div>
             </div>
             <div className="modal-footer">
-              <button className="btn btn-outline" onClick={() => setShowModal(false)}>Cancel</button>
-              <button className="btn btn-primary" onClick={handleSavePlan}>
-                <Check size={14} />
-                {editingPlan ? 'Save Changes' : 'Add Plan'}
+              <button className="btn btn-outline" onClick={() => setShowModal(false)} disabled={saving}>
+                Cancel
+              </button>
+              <button className="btn btn-primary" onClick={handleSavePlan} disabled={saving}>
+                {saving ? <Loader2 size={14} className="spinner" /> : <Check size={14} />}
+                {saving ? 'Saving...' : (editingPlan ? 'Save Changes' : 'Add Plan')}
               </button>
             </div>
           </div>
@@ -584,7 +629,9 @@ export function PlansManagement() {
               </div>
             </div>
             <div className="modal-footer">
-              <button className="btn btn-outline" onClick={() => setShowDeleteConfirm(null)}>Cancel</button>
+              <button className="btn btn-outline" onClick={() => setShowDeleteConfirm(null)}>
+                Cancel
+              </button>
               <button className="btn btn-danger" onClick={() => handleDeletePlan(showDeleteConfirm)}>
                 <Trash2 size={14} /> Delete
               </button>

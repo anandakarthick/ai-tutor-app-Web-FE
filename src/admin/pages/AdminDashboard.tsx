@@ -2,7 +2,7 @@
  * Admin Dashboard Page
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Users,
@@ -21,43 +21,105 @@ import {
   Settings,
   Eye,
   Layers,
-  ChevronLeft,
-  ChevronRight,
+  Loader2,
+  RefreshCw,
 } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { getDashboardStats, getRecentActivity, getTransactions } from '../../services/api/admin';
 import './AdminPages.css';
+
+interface DashboardStats {
+  totalStudents: number;
+  totalUsers: number;
+  totalSchools: number;
+  activeSubscriptions: number;
+  monthlyRevenue: number;
+  studentGrowth: string;
+}
+
+interface Activity {
+  type: string;
+  message: string;
+  user: string;
+  time: string;
+}
+
+interface Transaction {
+  id: string;
+  user: { fullName: string };
+  planName?: string;
+  amount: number;
+  status: string;
+  createdAt: string;
+}
 
 export function AdminDashboard() {
   const [selectedPeriod, setSelectedPeriod] = useState('30');
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
 
-  const stats = [
-    { title: 'Total Students', value: '12,456', change: '+12.5%', isPositive: true, icon: Users, color: '#3B82F6' },
-    { title: 'Active Subscriptions', value: '8,934', change: '+8.2%', isPositive: true, icon: CreditCard, color: '#22C55E' },
-    { title: 'Total Schools', value: '156', change: '+5.1%', isPositive: true, icon: School, color: '#F97316' },
-    { title: 'Monthly Revenue', value: '₹12.5L', change: '+18.3%', isPositive: true, icon: DollarSign, color: '#8B5CF6' },
-  ];
+  useEffect(() => {
+    fetchDashboardData();
+  }, [selectedPeriod]);
 
-  const recentActivities = [
-    { id: 1, type: 'subscription', message: 'Priya Sharma subscribed to Yearly Plan', time: '2 mins ago' },
-    { id: 2, type: 'registration', message: 'New student registration from Delhi Public School', time: '15 mins ago' },
-    { id: 3, type: 'payment', message: 'Payment received ₹3,000 - Order #ORD1234', time: '32 mins ago' },
-    { id: 4, type: 'school', message: 'New school added: Ryan International, Pune', time: '1 hour ago' },
-    { id: 5, type: 'subscription', message: 'Rahul Verma renewed Monthly Plan', time: '2 hours ago' },
-  ];
+  const fetchDashboardData = async () => {
+    setLoading(true);
+    try {
+      const [statsResponse, activityResponse, transactionsResponse] = await Promise.all([
+        getDashboardStats(),
+        getRecentActivity(5),
+        getTransactions({ limit: 5 }),
+      ]);
 
-  const topSchools = [
-    { name: 'Delhi Public School', students: 456, revenue: '₹13.6L' },
-    { name: "St. Xavier's High School", students: 389, revenue: '₹11.7L' },
-    { name: 'Kendriya Vidyalaya', students: 312, revenue: '₹9.4L' },
-    { name: 'DAV Public School', students: 278, revenue: '₹8.3L' },
-    { name: 'Ryan International', students: 245, revenue: '₹7.4L' },
-  ];
+      if (statsResponse.success) {
+        setStats(statsResponse.data);
+      }
 
-  const recentTransactions = [
-    { id: 'ORD001', student: 'Priya Sharma', plan: 'Yearly', amount: '₹3,000', status: 'success', date: 'Today, 10:30 AM' },
-    { id: 'ORD002', student: 'Rahul Verma', plan: 'Monthly', amount: '₹299', status: 'success', date: 'Today, 09:15 AM' },
-    { id: 'ORD003', student: 'Ananya Patel', plan: 'Yearly', amount: '₹3,000', status: 'pending', date: 'Yesterday' },
-    { id: 'ORD004', student: 'Vikram Singh', plan: 'Monthly', amount: '₹299', status: 'failed', date: 'Yesterday' },
-  ];
+      if (activityResponse.success) {
+        setActivities(activityResponse.data);
+      }
+
+      if (transactionsResponse.success) {
+        setTransactions(transactionsResponse.data.transactions || []);
+      }
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+      toast.error('Failed to load dashboard data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatCurrency = (amount: number) => {
+    if (amount >= 100000) {
+      return `₹${(amount / 100000).toFixed(1)}L`;
+    }
+    return `₹${amount.toLocaleString()}`;
+  };
+
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins} mins ago`;
+    if (diffHours < 24) return `${diffHours} hours ago`;
+    if (diffDays === 1) return 'Yesterday';
+    return date.toLocaleDateString();
+  };
+
+  const statCards = stats ? [
+    { title: 'Total Students', value: stats.totalStudents.toLocaleString(), change: stats.studentGrowth, isPositive: !stats.studentGrowth.startsWith('-'), icon: Users, color: '#3B82F6' },
+    { title: 'Active Subscriptions', value: stats.activeSubscriptions.toLocaleString(), change: '+8.2%', isPositive: true, icon: CreditCard, color: '#22C55E' },
+    { title: 'Total Schools', value: stats.totalSchools.toLocaleString(), change: '+5.1%', isPositive: true, icon: School, color: '#F97316' },
+    { title: 'Monthly Revenue', value: formatCurrency(stats.monthlyRevenue), change: '+18.3%', isPositive: true, icon: DollarSign, color: '#8B5CF6' },
+  ] : [];
 
   const quickActions = [
     { title: 'Add Student', icon: UserPlus, link: '/admin/students' },
@@ -73,10 +135,22 @@ export function AdminDashboard() {
       case 'subscription': return <CreditCard size={16} />;
       case 'registration': return <UserPlus size={16} />;
       case 'payment': return <DollarSign size={16} />;
+      case 'payment_failed': return <DollarSign size={16} />;
       case 'school': return <School size={16} />;
       default: return <Activity size={16} />;
     }
   };
+
+  if (loading) {
+    return (
+      <div className="admin-page">
+        <div className="loading-container">
+          <Loader2 size={40} className="spinner" />
+          <p>Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="admin-page">
@@ -86,6 +160,10 @@ export function AdminDashboard() {
           <p>Welcome back! Here's what's happening with your platform.</p>
         </div>
         <div className="header-actions">
+          <button className="btn btn-outline" onClick={fetchDashboardData}>
+            <RefreshCw size={16} />
+            Refresh
+          </button>
           <select 
             className="date-select"
             value={selectedPeriod}
@@ -101,7 +179,7 @@ export function AdminDashboard() {
 
       {/* Stats Grid */}
       <div className="stats-grid">
-        {stats.map((stat, index) => (
+        {statCards.map((stat, index) => (
           <div key={index} className="stat-card">
             <div className="stat-icon" style={{ background: `${stat.color}15`, color: stat.color }}>
               <stat.icon size={22} />
@@ -161,11 +239,11 @@ export function AdminDashboard() {
           <div className="distribution-stats">
             <div className="dist-item">
               <span className="dot monthly"></span>
-              <span>Monthly: 3,245 (36%)</span>
+              <span>Monthly: 36%</span>
             </div>
             <div className="dist-item">
               <span className="dot yearly"></span>
-              <span>Yearly: 5,689 (64%)</span>
+              <span>Yearly: 64%</span>
             </div>
           </div>
         </div>
@@ -181,103 +259,62 @@ export function AdminDashboard() {
             </Link>
           </div>
           <div className="activity-list">
-            {recentActivities.map((activity) => (
-              <div key={activity.id} className="activity-item">
-                <div className="activity-icon">
-                  {getActivityIcon(activity.type)}
+            {activities.length > 0 ? (
+              activities.map((activity, index) => (
+                <div key={index} className="activity-item">
+                  <div className="activity-icon">
+                    {getActivityIcon(activity.type)}
+                  </div>
+                  <div className="activity-content">
+                    <p>{activity.message}</p>
+                    <span>{formatDate(activity.time)}</span>
+                  </div>
                 </div>
-                <div className="activity-content">
-                  <p>{activity.message}</p>
-                  <span>{activity.time}</span>
-                </div>
+              ))
+            ) : (
+              <div className="empty-state" style={{ padding: '40px 20px' }}>
+                <Activity size={32} />
+                <p>No recent activities</p>
               </div>
-            ))}
+            )}
           </div>
         </div>
         <div className="table-card">
           <div className="card-header">
-            <h3>Top Schools</h3>
-            <Link to="/admin/schools" className="view-all">
+            <h3>Recent Transactions</h3>
+            <Link to="/admin/transactions" className="view-all">
               View All <ArrowRight size={14} />
             </Link>
           </div>
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>School</th>
-                <th>Students</th>
-                <th>Revenue</th>
-              </tr>
-            </thead>
-            <tbody>
-              {topSchools.map((school, index) => (
-                <tr key={index}>
-                  <td>
-                    <div className="school-name">
-                      <School size={14} />
-                      {school.name}
-                    </div>
-                  </td>
-                  <td>{school.students}</td>
-                  <td className="revenue">{school.revenue}</td>
+          {transactions.length > 0 ? (
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Amount</th>
+                  <th>Status</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Recent Transactions */}
-      <div className="data-grid" style={{ marginBottom: '24px' }}>
-        <div className="card-header">
-          <h3>Recent Transactions</h3>
-          <Link to="/admin/transactions" className="view-all">
-            View All <ArrowRight size={14} />
-          </Link>
-        </div>
-        <div className="table-responsive">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Order ID</th>
-                <th>Student</th>
-                <th>Plan</th>
-                <th>Amount</th>
-                <th>Status</th>
-                <th>Date</th>
-                <th style={{ width: '60px', textAlign: 'center' }}>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {recentTransactions.map((txn) => (
-                <tr key={txn.id}>
-                  <td>
-                    <span className="id-badge">{txn.id}</span>
-                  </td>
-                  <td>{txn.student}</td>
-                  <td>
-                    <span className={`plan-badge ${txn.plan.toLowerCase()}`}>
-                      {txn.plan}
-                    </span>
-                  </td>
-                  <td className="amount">{txn.amount}</td>
-                  <td>
-                    <span className={`status-badge ${txn.status}`}>
-                      {txn.status}
-                    </span>
-                  </td>
-                  <td className="date">{txn.date}</td>
-                  <td>
-                    <div className="table-actions" style={{ justifyContent: 'center' }}>
-                      <Link to="/admin/transactions" className="table-action-btn view">
-                        <Eye size={15} />
-                      </Link>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {transactions.slice(0, 5).map((txn, index) => (
+                  <tr key={index}>
+                    <td>{txn.user?.fullName || 'Unknown'}</td>
+                    <td className="revenue">₹{Number(txn.amount).toLocaleString()}</td>
+                    <td>
+                      <span className={`status-badge ${txn.status}`}>
+                        {txn.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <div className="empty-state" style={{ padding: '40px 20px' }}>
+              <CreditCard size={32} />
+              <p>No recent transactions</p>
+            </div>
+          )}
         </div>
       </div>
 

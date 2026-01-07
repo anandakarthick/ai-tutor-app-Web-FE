@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Shield, Lock, Mail, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAdminStore } from '../store/adminStore';
+import { adminLogin, setAdminAuth } from '../../services/api/admin';
 import logoImage from '../../assets/images/logo.png';
 import './AdminLogin.css';
 
@@ -31,38 +32,35 @@ export function AdminLogin() {
     setIsLoading(true);
 
     try {
-      // Simulating login for now
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Call actual API
+      const response = await adminLogin(email, password);
 
-      // Demo login - accept any credentials for now
-      if (email === 'admin@aitutor.com' && password === 'admin123') {
+      if (response.success && response.data) {
+        const { admin, accessToken, refreshToken } = response.data;
+
+        // Store tokens
+        setAdminAuth(accessToken, refreshToken, admin);
+
+        // Update store
         const adminData = {
-          id: '1',
-          name: 'Super Admin',
-          email: email,
-          role: 'super_admin' as const,
-          permissions: ['all'],
+          id: admin.id,
+          name: admin.fullName,
+          email: admin.email,
+          role: admin.role,
+          permissions: admin.permissions || [],
+          profileImageUrl: admin.profileImageUrl,
         };
 
-        login(adminData, 'demo-token-123');
+        login(adminData, accessToken);
         toast.success('Login successful!');
         navigate('/admin');
       } else {
-        // For demo, allow any login
-        const adminData = {
-          id: '1',
-          name: email.split('@')[0],
-          email: email,
-          role: 'admin' as const,
-          permissions: ['read', 'write'],
-        };
-
-        login(adminData, 'demo-token-123');
-        toast.success('Login successful!');
-        navigate('/admin');
+        toast.error(response.message || 'Login failed');
       }
-    } catch (error) {
-      toast.error('Login failed. Please check your credentials.');
+    } catch (error: any) {
+      console.error('Login error:', error);
+      const message = error.response?.data?.message || 'Login failed. Please check your credentials.';
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
@@ -169,7 +167,7 @@ export function AdminLogin() {
             </form>
 
             <div className="login-footer">
-              <p>Demo: admin@aitutor.com / admin123</p>
+              <p>Default: admin@aitutor.com / Admin@123</p>
             </div>
           </div>
         </div>

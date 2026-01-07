@@ -2,7 +2,7 @@
  * Admin Users Management Page
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Shield,
   Search,
@@ -19,36 +19,34 @@ import {
   ChevronLeft,
   ChevronRight,
   Key,
-  Calendar,
+  Loader2,
+  RefreshCw,
 } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { getAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser } from '../../services/api/admin';
 import './AdminPages.css';
 
 interface AdminUser {
   id: string;
-  name: string;
+  fullName: string;
   email: string;
-  phone: string;
+  phone?: string;
   role: 'super_admin' | 'admin' | 'moderator';
-  permissions: string[];
-  status: 'active' | 'inactive';
-  lastLogin: string;
+  permissions?: string[];
+  isActive: boolean;
+  lastLoginAt?: string;
   createdAt: string;
 }
 
-const rolePermissions = {
+const rolePermissions: Record<string, string[]> = {
   super_admin: ['all'],
   admin: ['students', 'schools', 'classes', 'subjects', 'reports', 'transactions', 'plans', 'settings'],
   moderator: ['students', 'reports', 'content'],
 };
 
 export function AdminUsersManagement() {
-  const [admins, setAdmins] = useState<AdminUser[]>([
-    { id: 'ADM001', name: 'Super Admin', email: 'admin@aitutor.com', phone: '+91 98765 43210', role: 'super_admin', permissions: ['all'], status: 'active', lastLogin: '2024-12-01 10:30:00', createdAt: '2024-01-01' },
-    { id: 'ADM002', name: 'Rahul Sharma', email: 'rahul.admin@aitutor.com', phone: '+91 98765 43211', role: 'admin', permissions: rolePermissions.admin, status: 'active', lastLogin: '2024-12-01 09:15:00', createdAt: '2024-02-15' },
-    { id: 'ADM003', name: 'Priya Gupta', email: 'priya.admin@aitutor.com', phone: '+91 98765 43212', role: 'admin', permissions: rolePermissions.admin, status: 'active', lastLogin: '2024-11-30 16:45:00', createdAt: '2024-03-20' },
-    { id: 'ADM004', name: 'Amit Kumar', email: 'amit.mod@aitutor.com', phone: '+91 98765 43213', role: 'moderator', permissions: rolePermissions.moderator, status: 'inactive', lastLogin: '2024-11-25 11:20:00', createdAt: '2024-04-10' },
-  ]);
-
+  const [admins, setAdmins] = useState<AdminUser[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [showModal, setShowModal] = useState(false);
@@ -57,39 +55,62 @@ export function AdminUsersManagement() {
   const [viewingAdmin, setViewingAdmin] = useState<AdminUser | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const [formData, setFormData] = useState({
-    name: '',
+    fullName: '',
     email: '',
     phone: '',
     password: '',
     role: 'admin' as 'super_admin' | 'admin' | 'moderator',
-    status: 'active',
+    isActive: true,
   });
 
+  useEffect(() => {
+    fetchAdmins();
+  }, []);
+
+  const fetchAdmins = async () => {
+    setLoading(true);
+    try {
+      const response = await getAdminUsers();
+      if (response.success) {
+        setAdmins(response.data);
+      }
+    } catch (error: any) {
+      console.error('Error fetching admins:', error);
+      if (error.response?.status === 403) {
+        toast.error('You do not have permission to view admin users');
+      } else {
+        toast.error('Failed to load admin users');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const filteredAdmins = admins.filter(admin => {
-    const matchesSearch = admin.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         admin.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         admin.id.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = admin.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         admin.email.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesRole = roleFilter === 'all' || admin.role === roleFilter;
     return matchesSearch && matchesRole;
   });
 
   const handleAddAdmin = () => {
     setEditingAdmin(null);
-    setFormData({ name: '', email: '', phone: '', password: '', role: 'admin', status: 'active' });
+    setFormData({ fullName: '', email: '', phone: '', password: '', role: 'admin', isActive: true });
     setShowModal(true);
   };
 
   const handleEditAdmin = (admin: AdminUser) => {
     setEditingAdmin(admin);
     setFormData({
-      name: admin.name,
+      fullName: admin.fullName,
       email: admin.email,
-      phone: admin.phone,
+      phone: admin.phone || '',
       password: '',
       role: admin.role,
-      status: admin.status,
+      isActive: admin.isActive,
     });
     setShowModal(true);
   };
@@ -99,37 +120,65 @@ export function AdminUsersManagement() {
     setShowViewModal(true);
   };
 
-  const handleSaveAdmin = () => {
-    if (editingAdmin) {
-      setAdmins(admins.map(a => 
-        a.id === editingAdmin.id 
-          ? { ...a, ...formData, permissions: rolePermissions[formData.role] } 
-          : a
-      ));
-    } else {
-      const newAdmin: AdminUser = {
-        id: `ADM${String(admins.length + 1).padStart(3, '0')}`,
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        role: formData.role,
-        permissions: rolePermissions[formData.role],
-        status: formData.status as 'active' | 'inactive',
-        lastLogin: '-',
-        createdAt: new Date().toISOString().split('T')[0],
-      };
-      setAdmins([...admins, newAdmin]);
+  const handleSaveAdmin = async () => {
+    if (!formData.fullName || !formData.email) {
+      toast.error('Please fill in required fields');
+      return;
     }
-    setShowModal(false);
+
+    if (!editingAdmin && !formData.password) {
+      toast.error('Password is required for new admin');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const payload: any = {
+        fullName: formData.fullName,
+        email: formData.email,
+        phone: formData.phone || undefined,
+        role: formData.role,
+        isActive: formData.isActive,
+        permissions: rolePermissions[formData.role],
+      };
+
+      if (formData.password) {
+        payload.password = formData.password;
+      }
+
+      if (editingAdmin) {
+        const response = await updateAdminUser(editingAdmin.id, payload);
+        if (response.success) {
+          toast.success('Admin updated successfully');
+        }
+      } else {
+        const response = await createAdminUser(payload);
+        if (response.success) {
+          toast.success('Admin created successfully');
+        }
+      }
+      setShowModal(false);
+      fetchAdmins();
+    } catch (error: any) {
+      console.error('Error saving admin:', error);
+      toast.error(error.response?.data?.message || 'Failed to save admin');
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleDeleteAdmin = (id: string) => {
-    const admin = admins.find(a => a.id === id);
-    if (admin?.role === 'super_admin') {
-      return; // Cannot delete super admin
+  const handleDeleteAdmin = async (id: string) => {
+    try {
+      const response = await deleteAdminUser(id);
+      if (response.success) {
+        toast.success('Admin deleted successfully');
+        setShowDeleteConfirm(null);
+        fetchAdmins();
+      }
+    } catch (error: any) {
+      console.error('Error deleting admin:', error);
+      toast.error(error.response?.data?.message || 'Failed to delete admin');
     }
-    setAdmins(admins.filter(a => a.id !== id));
-    setShowDeleteConfirm(null);
   };
 
   const getRoleBadgeClass = (role: string) => {
@@ -141,6 +190,17 @@ export function AdminUsersManagement() {
     }
   };
 
+  const formatDate = (dateStr?: string) => {
+    if (!dateStr) return '-';
+    return new Date(dateStr).toLocaleDateString('en-IN', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
   return (
     <div className="admin-page">
       <div className="page-header">
@@ -149,6 +209,10 @@ export function AdminUsersManagement() {
           <p>Manage admin accounts and permissions</p>
         </div>
         <div className="header-actions">
+          <button className="btn btn-outline" onClick={fetchAdmins}>
+            <RefreshCw size={16} />
+            Refresh
+          </button>
           <button className="btn btn-primary" onClick={handleAddAdmin}>
             <Plus size={16} />
             Add Admin
@@ -173,7 +237,7 @@ export function AdminUsersManagement() {
           </div>
           <div className="stat-content">
             <p className="stat-title">Active</p>
-            <h3 className="stat-value">{admins.filter(a => a.status === 'active').length}</h3>
+            <h3 className="stat-value">{admins.filter(a => a.isActive).length}</h3>
           </div>
         </div>
         <div className="stat-card">
@@ -220,106 +284,112 @@ export function AdminUsersManagement() {
         <div className="card-header">
           <h3>All Admins ({filteredAdmins.length})</h3>
         </div>
-        <div className="table-responsive">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Admin</th>
-                <th>Contact</th>
-                <th>Role</th>
-                <th>Last Login</th>
-                <th>Status</th>
-                <th style={{ width: '120px', textAlign: 'center' }}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredAdmins.map((admin) => (
-                <tr key={admin.id}>
-                  <td>
-                    <span className="id-badge">{admin.id}</span>
-                  </td>
-                  <td>
-                    <div className="user-cell">
-                      <div className="user-avatar" style={{ background: admin.role === 'super_admin' ? 'linear-gradient(135deg, #EF4444, #F87171)' : admin.role === 'admin' ? 'linear-gradient(135deg, #3B82F6, #60A5FA)' : 'linear-gradient(135deg, #22C55E, #4ADE80)' }}>
-                        <Shield size={16} />
-                      </div>
-                      <span className="user-name">{admin.name}</span>
-                    </div>
-                  </td>
-                  <td>
-                    <div className="contact-cell">
-                      <span><Mail size={12} /> {admin.email}</span>
-                      <span><Phone size={12} /> {admin.phone}</span>
-                    </div>
-                  </td>
-                  <td>
-                    <span className={`role-badge ${getRoleBadgeClass(admin.role)}`}>
-                      {admin.role.replace('_', ' ')}
-                    </span>
-                  </td>
-                  <td>
-                    <span className="date-cell">{admin.lastLogin}</span>
-                  </td>
-                  <td>
-                    <span className={`status-badge ${admin.status}`}>
-                      {admin.status}
-                    </span>
-                  </td>
-                  <td>
-                    <div className="table-actions">
-                      <button 
-                        className="table-action-btn view" 
-                        title="View Details"
-                        onClick={() => handleViewAdmin(admin)}
-                      >
-                        <Eye size={15} />
-                      </button>
-                      <button 
-                        className="table-action-btn edit" 
-                        title="Edit"
-                        onClick={() => handleEditAdmin(admin)}
-                      >
-                        <Edit2 size={15} />
-                      </button>
-                      {admin.role !== 'super_admin' && (
-                        <button 
-                          className="table-action-btn delete" 
-                          title="Delete"
-                          onClick={() => setShowDeleteConfirm(admin.id)}
-                        >
-                          <Trash2 size={15} />
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
 
-        {filteredAdmins.length === 0 && (
-          <div className="empty-state">
-            <UserCog size={48} />
-            <h3>No admins found</h3>
-            <p>Try adjusting your search or filter criteria</p>
+        {loading ? (
+          <div className="loading-container" style={{ padding: '60px 20px' }}>
+            <Loader2 size={32} className="spinner" />
+            <p>Loading admins...</p>
           </div>
+        ) : (
+          <>
+            <div className="table-responsive">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Admin</th>
+                    <th>Contact</th>
+                    <th>Role</th>
+                    <th>Last Login</th>
+                    <th>Status</th>
+                    <th style={{ width: '120px', textAlign: 'center' }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredAdmins.map((admin) => (
+                    <tr key={admin.id}>
+                      <td>
+                        <div className="user-cell">
+                          <div className="user-avatar" style={{ background: admin.role === 'super_admin' ? 'linear-gradient(135deg, #EF4444, #F87171)' : admin.role === 'admin' ? 'linear-gradient(135deg, #3B82F6, #60A5FA)' : 'linear-gradient(135deg, #22C55E, #4ADE80)' }}>
+                            <Shield size={16} />
+                          </div>
+                          <span className="user-name">{admin.fullName}</span>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="contact-cell">
+                          <span><Mail size={12} /> {admin.email}</span>
+                          <span><Phone size={12} /> {admin.phone || '-'}</span>
+                        </div>
+                      </td>
+                      <td>
+                        <span className={`role-badge ${getRoleBadgeClass(admin.role)}`}>
+                          {admin.role.replace('_', ' ')}
+                        </span>
+                      </td>
+                      <td>
+                        <span className="date-cell">{formatDate(admin.lastLoginAt)}</span>
+                      </td>
+                      <td>
+                        <span className={`status-badge ${admin.isActive ? 'active' : 'inactive'}`}>
+                          {admin.isActive ? 'Active' : 'Inactive'}
+                        </span>
+                      </td>
+                      <td>
+                        <div className="table-actions">
+                          <button 
+                            className="table-action-btn view" 
+                            title="View Details"
+                            onClick={() => handleViewAdmin(admin)}
+                          >
+                            <Eye size={15} />
+                          </button>
+                          <button 
+                            className="table-action-btn edit" 
+                            title="Edit"
+                            onClick={() => handleEditAdmin(admin)}
+                          >
+                            <Edit2 size={15} />
+                          </button>
+                          {admin.role !== 'super_admin' && (
+                            <button 
+                              className="table-action-btn delete" 
+                              title="Delete"
+                              onClick={() => setShowDeleteConfirm(admin.id)}
+                            >
+                              <Trash2 size={15} />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {filteredAdmins.length === 0 && (
+              <div className="empty-state">
+                <UserCog size={48} />
+                <h3>No admins found</h3>
+                <p>Try adjusting your search or filter criteria</p>
+              </div>
+            )}
+
+            {/* Pagination */}
+            <div className="pagination">
+              <span className="pagination-info">Showing 1-{filteredAdmins.length} of {admins.length} admins</span>
+              <div className="pagination-buttons">
+                <button className="pagination-btn" disabled>
+                  <ChevronLeft size={14} />
+                </button>
+                <button className="pagination-btn active">1</button>
+                <button className="pagination-btn" disabled>
+                  <ChevronRight size={14} />
+                </button>
+              </div>
+            </div>
+          </>
         )}
-
-        {/* Pagination */}
-        <div className="pagination">
-          <span className="pagination-info">Showing 1-{filteredAdmins.length} of {admins.length} admins</span>
-          <div className="pagination-buttons">
-            <button className="pagination-btn" disabled>
-              <ChevronLeft size={14} />
-            </button>
-            <button className="pagination-btn active">1</button>
-            <button className="pagination-btn">
-              <ChevronRight size={14} />
-            </button>
-          </div>
-        </div>
       </div>
 
       {/* View Admin Modal */}
@@ -337,7 +407,7 @@ export function AdminUsersManagement() {
                 <div className="profile-avatar-large" style={{ background: viewingAdmin.role === 'super_admin' ? 'linear-gradient(135deg, #EF4444, #F87171)' : viewingAdmin.role === 'admin' ? 'linear-gradient(135deg, #3B82F6, #60A5FA)' : 'linear-gradient(135deg, #22C55E, #4ADE80)' }}>
                   <Shield size={28} />
                 </div>
-                <h3>{viewingAdmin.name}</h3>
+                <h3>{viewingAdmin.fullName}</h3>
                 <span className={`role-badge ${getRoleBadgeClass(viewingAdmin.role)}`}>
                   {viewingAdmin.role.replace('_', ' ')}
                 </span>
@@ -345,7 +415,7 @@ export function AdminUsersManagement() {
               <div className="view-details">
                 <div className="detail-item">
                   <label>Admin ID</label>
-                  <span>{viewingAdmin.id}</span>
+                  <span>{viewingAdmin.id.slice(0, 8)}...</span>
                 </div>
                 <div className="detail-item">
                   <label>Email</label>
@@ -353,24 +423,24 @@ export function AdminUsersManagement() {
                 </div>
                 <div className="detail-item">
                   <label>Phone</label>
-                  <span>{viewingAdmin.phone}</span>
+                  <span>{viewingAdmin.phone || '-'}</span>
                 </div>
                 <div className="detail-item">
                   <label>Status</label>
-                  <span className={`status-badge ${viewingAdmin.status}`}>{viewingAdmin.status}</span>
+                  <span className={`status-badge ${viewingAdmin.isActive ? 'active' : 'inactive'}`}>{viewingAdmin.isActive ? 'Active' : 'Inactive'}</span>
                 </div>
                 <div className="detail-item">
                   <label>Last Login</label>
-                  <span>{viewingAdmin.lastLogin}</span>
+                  <span>{formatDate(viewingAdmin.lastLoginAt)}</span>
                 </div>
                 <div className="detail-item">
                   <label>Created</label>
-                  <span>{viewingAdmin.createdAt}</span>
+                  <span>{formatDate(viewingAdmin.createdAt)}</span>
                 </div>
                 <div className="detail-item full-width">
-                  <label>Permissions ({viewingAdmin.permissions.length})</label>
+                  <label>Permissions ({(viewingAdmin.permissions || rolePermissions[viewingAdmin.role]).length})</label>
                   <div className="features-list" style={{ marginTop: '8px' }}>
-                    {viewingAdmin.permissions.map((perm, index) => (
+                    {(viewingAdmin.permissions || rolePermissions[viewingAdmin.role]).map((perm, index) => (
                       <span key={index} className="feature-tag">
                         <Check size={12} /> {perm}
                       </span>
@@ -411,8 +481,8 @@ export function AdminUsersManagement() {
                   <label>Full Name <span>*</span></label>
                   <input 
                     type="text" 
-                    value={formData.name}
-                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    value={formData.fullName}
+                    onChange={(e) => setFormData({...formData, fullName: e.target.value})}
                     placeholder="Enter full name"
                   />
                 </div>
@@ -464,8 +534,8 @@ export function AdminUsersManagement() {
                 <div className="form-group">
                   <label>Status</label>
                   <select 
-                    value={formData.status}
-                    onChange={(e) => setFormData({...formData, status: e.target.value})}
+                    value={formData.isActive ? 'active' : 'inactive'}
+                    onChange={(e) => setFormData({...formData, isActive: e.target.value === 'active'})}
                   >
                     <option value="active">Active</option>
                     <option value="inactive">Inactive</option>
@@ -482,10 +552,12 @@ export function AdminUsersManagement() {
               </div>
             </div>
             <div className="modal-footer">
-              <button className="btn btn-outline" onClick={() => setShowModal(false)}>Cancel</button>
-              <button className="btn btn-primary" onClick={handleSaveAdmin}>
-                <Check size={14} />
-                {editingAdmin ? 'Save Changes' : 'Add Admin'}
+              <button className="btn btn-outline" onClick={() => setShowModal(false)} disabled={saving}>
+                Cancel
+              </button>
+              <button className="btn btn-primary" onClick={handleSaveAdmin} disabled={saving}>
+                {saving ? <Loader2 size={14} className="spinner" /> : <Check size={14} />}
+                {saving ? 'Saving...' : (editingAdmin ? 'Save Changes' : 'Add Admin')}
               </button>
             </div>
           </div>
@@ -512,7 +584,9 @@ export function AdminUsersManagement() {
               </div>
             </div>
             <div className="modal-footer">
-              <button className="btn btn-outline" onClick={() => setShowDeleteConfirm(null)}>Cancel</button>
+              <button className="btn btn-outline" onClick={() => setShowDeleteConfirm(null)}>
+                Cancel
+              </button>
               <button className="btn btn-danger" onClick={() => handleDeleteAdmin(showDeleteConfirm)}>
                 <Trash2 size={14} /> Delete
               </button>

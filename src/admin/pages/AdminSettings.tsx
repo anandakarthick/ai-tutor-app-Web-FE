@@ -1,8 +1,9 @@
 /**
  * Admin Settings Page
+ * With API Integration
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Settings,
@@ -16,18 +17,18 @@ import {
   Save,
   Eye,
   EyeOff,
-  Globe,
-  Clock,
   AlertTriangle,
-  Check,
   Loader2,
+  RefreshCw,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { getSettings, updateSettingsByCategory } from '../../services/api/admin';
 import './AdminPages.css';
 
 export function AdminSettings() {
   const location = useLocation();
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showApiKey, setShowApiKey] = useState(false);
   const [showRazorpayKey, setShowRazorpayKey] = useState(false);
@@ -37,8 +38,8 @@ export function AdminSettings() {
   const getActiveSection = () => {
     const path = location.pathname;
     if (path.includes('payment')) return 'payment';
-    if (path.includes('api-keys')) return 'api-keys';
-    if (path.includes('app-config')) return 'app-config';
+    if (path.includes('api-keys')) return 'api';
+    if (path.includes('app-config')) return 'app';
     if (path.includes('notifications')) return 'notifications';
     if (path.includes('security')) return 'security';
     if (path.includes('email')) return 'email';
@@ -59,79 +60,210 @@ export function AdminSettings() {
 
   // Form states
   const [generalSettings, setGeneralSettings] = useState({
-    siteName: 'AI Tutor',
-    siteDescription: 'Your AI-powered learning companion',
-    siteUrl: 'https://aitutor.com',
-    supportEmail: 'support@aitutor.com',
-    supportPhone: '+91 1800-123-4567',
+    site_name: 'AI Tutor',
+    site_description: 'Your AI-powered learning companion',
+    site_url: 'https://aitutor.com',
+    support_email: 'support@aitutor.com',
+    support_phone: '+91 1800-123-4567',
     timezone: 'Asia/Kolkata',
     language: 'en',
-    maintenanceMode: false,
+    maintenance_mode: false,
   });
 
   const [paymentSettings, setPaymentSettings] = useState({
-    razorpayEnabled: true,
-    razorpayKeyId: 'rzp_test_xxxxxxxxxxxx',
-    razorpayKeySecret: 'xxxxxxxxxxxxxxxxxxxx',
-    webhookSecret: 'whsec_xxxxxxxxxxxx',
-    testMode: true,
+    razorpay_enabled: true,
+    razorpay_key_id: '',
+    razorpay_test_mode: true,
   });
 
   const [apiSettings, setApiSettings] = useState({
-    claudeApiKey: 'sk-ant-xxxxxxxxxxxx',
-    claudeModel: 'claude-3-sonnet',
-    firebaseApiKey: 'AIzaSyxxxxxxxxxx',
-    firebaseProjectId: 'ai-tutor-app',
-    smsProvider: 'twilio',
-    smsApiKey: 'xxxxxxxxxxxx',
+    claude_api_key: '',
+    claude_model: 'claude-3-sonnet',
+    firebase_api_key: '',
+    firebase_project_id: '',
+    sms_provider: 'twilio',
+    sms_api_key: '',
   });
 
   const [appSettings, setAppSettings] = useState({
-    currentVersion: '1.0.0',
-    minVersion: '1.0.0',
-    forceUpdate: false,
-    playStoreUrl: 'https://play.google.com/store/apps/details?id=com.aitutor.app',
-    appStoreUrl: 'https://apps.apple.com/app/ai-tutor/id123456789',
-    maxLoginDevices: 3,
-    sessionTimeout: 30,
-    freeTrialDays: 7,
-    maxQuestionsPerDay: 50,
-    offlineMode: true,
-    pushNotifications: true,
-    analyticsEnabled: true,
-    crashReporting: true,
+    app_current_version: '1.0.0',
+    app_min_version: '1.0.0',
+    app_force_update: false,
+    play_store_url: '',
+    app_store_url: '',
+    max_login_devices: 3,
+    session_timeout: 30,
+    free_trial_days: 7,
+    max_questions_per_day: 50,
+    offline_mode: true,
+    push_notifications: true,
+    analytics_enabled: true,
   });
 
   const [notificationSettings, setNotificationSettings] = useState({
-    emailNotifications: true,
-    smsNotifications: false,
-    pushNotifications: true,
-    newUserNotification: true,
-    paymentNotification: true,
-    subscriptionExpiryNotification: true,
-    dailyReportEmail: false,
-    weeklyReportEmail: true,
-    reportRecipients: 'admin@aitutor.com',
+    email_notifications: true,
+    sms_notifications: false,
+    push_notifications: true,
+    new_user_notification: true,
+    payment_notification: true,
+    subscription_expiry_notification: true,
+    daily_report_email: false,
+    weekly_report_email: true,
+    report_recipients: 'admin@aitutor.com',
   });
+
+  const [securitySettings, setSecuritySettings] = useState({
+    two_factor_auth: false,
+    ip_whitelisting: false,
+    session_logging: true,
+    password_policy: 'medium',
+    auto_logout_minutes: 30,
+  });
+
+  const [emailSettings, setEmailSettings] = useState({
+    smtp_host: '',
+    smtp_port: 587,
+    smtp_username: '',
+    smtp_from_email: '',
+    smtp_from_name: 'AI Tutor',
+    smtp_use_tls: true,
+  });
+
+  const [databaseSettings, setDatabaseSettings] = useState({
+    auto_backup: true,
+    backup_time: '02:00',
+    backup_retention_days: 30,
+    backup_storage: 'local',
+  });
+
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
+  const fetchSettings = async () => {
+    setLoading(true);
+    try {
+      const response = await getSettings();
+      if (response.success && response.data) {
+        const data = response.data;
+        
+        // Update general settings
+        if (data.general) {
+          setGeneralSettings(prev => ({ ...prev, ...data.general }));
+        }
+        
+        // Update payment settings
+        if (data.payment) {
+          setPaymentSettings(prev => ({ ...prev, ...data.payment }));
+        }
+        
+        // Update API settings
+        if (data.api) {
+          setApiSettings(prev => ({ ...prev, ...data.api }));
+        }
+        
+        // Update app settings
+        if (data.app) {
+          setAppSettings(prev => ({ ...prev, ...data.app }));
+        }
+        
+        // Update notification settings
+        if (data.notifications) {
+          setNotificationSettings(prev => ({ ...prev, ...data.notifications }));
+        }
+        
+        // Update security settings
+        if (data.security) {
+          setSecuritySettings(prev => ({ ...prev, ...data.security }));
+        }
+        
+        // Update email settings
+        if (data.email) {
+          setEmailSettings(prev => ({ ...prev, ...data.email }));
+        }
+        
+        // Update database settings
+        if (data.database) {
+          setDatabaseSettings(prev => ({ ...prev, ...data.database }));
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching settings:', error);
+      toast.error('Failed to load settings');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSave = async () => {
     setSaving(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setSaving(false);
-    toast.success('Settings saved successfully!');
+    try {
+      // Determine which category to save
+      let data: Record<string, any> = {};
+      let category = activeSection;
+
+      switch (activeSection) {
+        case 'general':
+          data = generalSettings;
+          break;
+        case 'payment':
+          data = paymentSettings;
+          break;
+        case 'api':
+          data = apiSettings;
+          category = 'api';
+          break;
+        case 'app':
+          data = appSettings;
+          break;
+        case 'notifications':
+          data = notificationSettings;
+          break;
+        case 'security':
+          data = securitySettings;
+          break;
+        case 'email':
+          data = emailSettings;
+          break;
+        case 'database':
+          data = databaseSettings;
+          break;
+        default:
+          data = generalSettings;
+          category = 'general';
+      }
+
+      await updateSettingsByCategory(category, data);
+      toast.success('Settings saved successfully!');
+    } catch (error) {
+      console.error('Error saving settings:', error);
+      toast.error('Failed to save settings');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const navItems = [
     { id: 'general', label: 'General', icon: Settings },
     { id: 'payment', label: 'Payment Gateway', icon: CreditCard },
-    { id: 'api-keys', label: 'API Keys', icon: Key },
-    { id: 'app-config', label: 'App Configuration', icon: Smartphone },
+    { id: 'api', label: 'API Keys', icon: Key },
+    { id: 'app', label: 'App Configuration', icon: Smartphone },
     { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'security', label: 'Security', icon: Shield },
     { id: 'email', label: 'Email', icon: Mail },
     { id: 'database', label: 'Database', icon: Database },
   ];
+
+  if (loading) {
+    return (
+      <div className="admin-page">
+        <div className="loading-container">
+          <Loader2 size={40} className="spinner" />
+          <p>Loading settings...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="admin-page">
@@ -141,6 +273,10 @@ export function AdminSettings() {
           <p>Manage your platform configuration</p>
         </div>
         <div className="header-actions">
+          <button className="btn btn-outline" onClick={fetchSettings} disabled={loading}>
+            <RefreshCw size={16} />
+            Refresh
+          </button>
           <button className="btn btn-primary" onClick={handleSave} disabled={saving}>
             {saving ? <Loader2 size={16} className="spinner" /> : <Save size={16} />}
             {saving ? 'Saving...' : 'Save Changes'}
@@ -175,39 +311,39 @@ export function AdminSettings() {
                   <label>Site Name</label>
                   <input 
                     type="text" 
-                    value={generalSettings.siteName}
-                    onChange={(e) => setGeneralSettings({...generalSettings, siteName: e.target.value})}
+                    value={generalSettings.site_name}
+                    onChange={(e) => setGeneralSettings({...generalSettings, site_name: e.target.value})}
                   />
                 </div>
                 <div className="form-group">
                   <label>Site URL</label>
                   <input 
                     type="url" 
-                    value={generalSettings.siteUrl}
-                    onChange={(e) => setGeneralSettings({...generalSettings, siteUrl: e.target.value})}
+                    value={generalSettings.site_url}
+                    onChange={(e) => setGeneralSettings({...generalSettings, site_url: e.target.value})}
                   />
                 </div>
                 <div className="form-group full-width">
                   <label>Site Description</label>
                   <textarea 
-                    value={generalSettings.siteDescription}
-                    onChange={(e) => setGeneralSettings({...generalSettings, siteDescription: e.target.value})}
+                    value={generalSettings.site_description}
+                    onChange={(e) => setGeneralSettings({...generalSettings, site_description: e.target.value})}
                   />
                 </div>
                 <div className="form-group">
                   <label>Support Email</label>
                   <input 
                     type="email" 
-                    value={generalSettings.supportEmail}
-                    onChange={(e) => setGeneralSettings({...generalSettings, supportEmail: e.target.value})}
+                    value={generalSettings.support_email}
+                    onChange={(e) => setGeneralSettings({...generalSettings, support_email: e.target.value})}
                   />
                 </div>
                 <div className="form-group">
                   <label>Support Phone</label>
                   <input 
                     type="tel" 
-                    value={generalSettings.supportPhone}
-                    onChange={(e) => setGeneralSettings({...generalSettings, supportPhone: e.target.value})}
+                    value={generalSettings.support_phone}
+                    onChange={(e) => setGeneralSettings({...generalSettings, support_phone: e.target.value})}
                   />
                 </div>
                 <div className="form-group">
@@ -240,8 +376,8 @@ export function AdminSettings() {
                 <label className="toggle-switch">
                   <input 
                     type="checkbox" 
-                    checked={generalSettings.maintenanceMode}
-                    onChange={(e) => setGeneralSettings({...generalSettings, maintenanceMode: e.target.checked})}
+                    checked={generalSettings.maintenance_mode}
+                    onChange={(e) => setGeneralSettings({...generalSettings, maintenance_mode: e.target.checked})}
                   />
                   <span className="toggle-slider"></span>
                 </label>
@@ -262,49 +398,24 @@ export function AdminSettings() {
                 <label className="toggle-switch">
                   <input 
                     type="checkbox" 
-                    checked={paymentSettings.razorpayEnabled}
-                    onChange={(e) => setPaymentSettings({...paymentSettings, razorpayEnabled: e.target.checked})}
+                    checked={paymentSettings.razorpay_enabled}
+                    onChange={(e) => setPaymentSettings({...paymentSettings, razorpay_enabled: e.target.checked})}
                   />
                   <span className="toggle-slider"></span>
                 </label>
               </div>
               <div className="form-grid" style={{ marginTop: '16px' }}>
-                <div className="form-group">
+                <div className="form-group full-width">
                   <label>Razorpay Key ID</label>
                   <div className="input-with-action">
                     <input 
                       type={showRazorpayKey ? 'text' : 'password'} 
-                      value={paymentSettings.razorpayKeyId}
-                      onChange={(e) => setPaymentSettings({...paymentSettings, razorpayKeyId: e.target.value})}
+                      value={paymentSettings.razorpay_key_id}
+                      onChange={(e) => setPaymentSettings({...paymentSettings, razorpay_key_id: e.target.value})}
+                      placeholder="rzp_test_xxxxxxxxxxxx"
                     />
                     <button type="button" onClick={() => setShowRazorpayKey(!showRazorpayKey)}>
                       {showRazorpayKey ? <EyeOff size={16} /> : <Eye size={16} />}
-                    </button>
-                  </div>
-                </div>
-                <div className="form-group">
-                  <label>Razorpay Key Secret</label>
-                  <div className="input-with-action">
-                    <input 
-                      type="password" 
-                      value={paymentSettings.razorpayKeySecret}
-                      onChange={(e) => setPaymentSettings({...paymentSettings, razorpayKeySecret: e.target.value})}
-                    />
-                    <button type="button">
-                      <Eye size={16} />
-                    </button>
-                  </div>
-                </div>
-                <div className="form-group full-width">
-                  <label>Webhook Secret</label>
-                  <div className="input-with-action">
-                    <input 
-                      type={showWebhookSecret ? 'text' : 'password'} 
-                      value={paymentSettings.webhookSecret}
-                      onChange={(e) => setPaymentSettings({...paymentSettings, webhookSecret: e.target.value})}
-                    />
-                    <button type="button" onClick={() => setShowWebhookSecret(!showWebhookSecret)}>
-                      {showWebhookSecret ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
                   </div>
                 </div>
@@ -317,13 +428,13 @@ export function AdminSettings() {
                 <label className="toggle-switch">
                   <input 
                     type="checkbox" 
-                    checked={paymentSettings.testMode}
-                    onChange={(e) => setPaymentSettings({...paymentSettings, testMode: e.target.checked})}
+                    checked={paymentSettings.razorpay_test_mode}
+                    onChange={(e) => setPaymentSettings({...paymentSettings, razorpay_test_mode: e.target.checked})}
                   />
                   <span className="toggle-slider"></span>
                 </label>
               </div>
-              {paymentSettings.testMode && (
+              {paymentSettings.razorpay_test_mode && (
                 <div className="alert alert-warning" style={{ marginTop: '16px' }}>
                   <AlertTriangle size={16} />
                   Test mode is enabled. Real payments will not be processed.
@@ -333,7 +444,7 @@ export function AdminSettings() {
           )}
 
           {/* API Keys Settings */}
-          {activeSection === 'api-keys' && (
+          {activeSection === 'api' && (
             <div className="settings-section">
               <h3>API Keys</h3>
               <p>Manage third-party API integrations</p>
@@ -343,8 +454,9 @@ export function AdminSettings() {
                   <div className="input-with-action">
                     <input 
                       type={showApiKey ? 'text' : 'password'} 
-                      value={apiSettings.claudeApiKey}
-                      onChange={(e) => setApiSettings({...apiSettings, claudeApiKey: e.target.value})}
+                      value={apiSettings.claude_api_key}
+                      onChange={(e) => setApiSettings({...apiSettings, claude_api_key: e.target.value})}
+                      placeholder="sk-ant-xxxxxxxxxxxx"
                     />
                     <button type="button" onClick={() => setShowApiKey(!showApiKey)}>
                       {showApiKey ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -354,8 +466,8 @@ export function AdminSettings() {
                 <div className="form-group">
                   <label>Claude Model</label>
                   <select 
-                    value={apiSettings.claudeModel}
-                    onChange={(e) => setApiSettings({...apiSettings, claudeModel: e.target.value})}
+                    value={apiSettings.claude_model}
+                    onChange={(e) => setApiSettings({...apiSettings, claude_model: e.target.value})}
                   >
                     <option value="claude-3-sonnet">Claude 3 Sonnet</option>
                     <option value="claude-3-opus">Claude 3 Opus</option>
@@ -366,23 +478,25 @@ export function AdminSettings() {
                   <label>Firebase API Key</label>
                   <input 
                     type="password" 
-                    value={apiSettings.firebaseApiKey}
-                    onChange={(e) => setApiSettings({...apiSettings, firebaseApiKey: e.target.value})}
+                    value={apiSettings.firebase_api_key}
+                    onChange={(e) => setApiSettings({...apiSettings, firebase_api_key: e.target.value})}
+                    placeholder="AIzaSyxxxxxxxxxx"
                   />
                 </div>
                 <div className="form-group">
                   <label>Firebase Project ID</label>
                   <input 
                     type="text" 
-                    value={apiSettings.firebaseProjectId}
-                    onChange={(e) => setApiSettings({...apiSettings, firebaseProjectId: e.target.value})}
+                    value={apiSettings.firebase_project_id}
+                    onChange={(e) => setApiSettings({...apiSettings, firebase_project_id: e.target.value})}
+                    placeholder="ai-tutor-app"
                   />
                 </div>
                 <div className="form-group">
                   <label>SMS Provider</label>
                   <select 
-                    value={apiSettings.smsProvider}
-                    onChange={(e) => setApiSettings({...apiSettings, smsProvider: e.target.value})}
+                    value={apiSettings.sms_provider}
+                    onChange={(e) => setApiSettings({...apiSettings, sms_provider: e.target.value})}
                   >
                     <option value="twilio">Twilio</option>
                     <option value="msg91">MSG91</option>
@@ -393,8 +507,8 @@ export function AdminSettings() {
                   <label>SMS API Key</label>
                   <input 
                     type="password" 
-                    value={apiSettings.smsApiKey}
-                    onChange={(e) => setApiSettings({...apiSettings, smsApiKey: e.target.value})}
+                    value={apiSettings.sms_api_key}
+                    onChange={(e) => setApiSettings({...apiSettings, sms_api_key: e.target.value})}
                   />
                 </div>
               </div>
@@ -402,7 +516,7 @@ export function AdminSettings() {
           )}
 
           {/* App Configuration */}
-          {activeSection === 'app-config' && (
+          {activeSection === 'app' && (
             <div className="settings-section">
               <h3>App Configuration</h3>
               <p>Mobile app settings and limits</p>
@@ -411,64 +525,64 @@ export function AdminSettings() {
                   <label>Current Version</label>
                   <input 
                     type="text" 
-                    value={appSettings.currentVersion}
-                    onChange={(e) => setAppSettings({...appSettings, currentVersion: e.target.value})}
+                    value={appSettings.app_current_version}
+                    onChange={(e) => setAppSettings({...appSettings, app_current_version: e.target.value})}
                   />
                 </div>
                 <div className="form-group">
                   <label>Minimum Version</label>
                   <input 
                     type="text" 
-                    value={appSettings.minVersion}
-                    onChange={(e) => setAppSettings({...appSettings, minVersion: e.target.value})}
+                    value={appSettings.app_min_version}
+                    onChange={(e) => setAppSettings({...appSettings, app_min_version: e.target.value})}
                   />
                 </div>
                 <div className="form-group full-width">
                   <label>Play Store URL</label>
                   <input 
                     type="url" 
-                    value={appSettings.playStoreUrl}
-                    onChange={(e) => setAppSettings({...appSettings, playStoreUrl: e.target.value})}
+                    value={appSettings.play_store_url}
+                    onChange={(e) => setAppSettings({...appSettings, play_store_url: e.target.value})}
                   />
                 </div>
                 <div className="form-group full-width">
                   <label>App Store URL</label>
                   <input 
                     type="url" 
-                    value={appSettings.appStoreUrl}
-                    onChange={(e) => setAppSettings({...appSettings, appStoreUrl: e.target.value})}
+                    value={appSettings.app_store_url}
+                    onChange={(e) => setAppSettings({...appSettings, app_store_url: e.target.value})}
                   />
                 </div>
                 <div className="form-group">
                   <label>Max Login Devices</label>
                   <input 
                     type="number" 
-                    value={appSettings.maxLoginDevices}
-                    onChange={(e) => setAppSettings({...appSettings, maxLoginDevices: parseInt(e.target.value)})}
+                    value={appSettings.max_login_devices}
+                    onChange={(e) => setAppSettings({...appSettings, max_login_devices: parseInt(e.target.value)})}
                   />
                 </div>
                 <div className="form-group">
                   <label>Session Timeout (minutes)</label>
                   <input 
                     type="number" 
-                    value={appSettings.sessionTimeout}
-                    onChange={(e) => setAppSettings({...appSettings, sessionTimeout: parseInt(e.target.value)})}
+                    value={appSettings.session_timeout}
+                    onChange={(e) => setAppSettings({...appSettings, session_timeout: parseInt(e.target.value)})}
                   />
                 </div>
                 <div className="form-group">
                   <label>Free Trial Days</label>
                   <input 
                     type="number" 
-                    value={appSettings.freeTrialDays}
-                    onChange={(e) => setAppSettings({...appSettings, freeTrialDays: parseInt(e.target.value)})}
+                    value={appSettings.free_trial_days}
+                    onChange={(e) => setAppSettings({...appSettings, free_trial_days: parseInt(e.target.value)})}
                   />
                 </div>
                 <div className="form-group">
                   <label>Max Questions/Day (Free)</label>
                   <input 
                     type="number" 
-                    value={appSettings.maxQuestionsPerDay}
-                    onChange={(e) => setAppSettings({...appSettings, maxQuestionsPerDay: parseInt(e.target.value)})}
+                    value={appSettings.max_questions_per_day}
+                    onChange={(e) => setAppSettings({...appSettings, max_questions_per_day: parseInt(e.target.value)})}
                   />
                 </div>
               </div>
@@ -480,8 +594,8 @@ export function AdminSettings() {
                 <label className="toggle-switch">
                   <input 
                     type="checkbox" 
-                    checked={appSettings.forceUpdate}
-                    onChange={(e) => setAppSettings({...appSettings, forceUpdate: e.target.checked})}
+                    checked={appSettings.app_force_update}
+                    onChange={(e) => setAppSettings({...appSettings, app_force_update: e.target.checked})}
                   />
                   <span className="toggle-slider"></span>
                 </label>
@@ -494,8 +608,8 @@ export function AdminSettings() {
                 <label className="toggle-switch">
                   <input 
                     type="checkbox" 
-                    checked={appSettings.offlineMode}
-                    onChange={(e) => setAppSettings({...appSettings, offlineMode: e.target.checked})}
+                    checked={appSettings.offline_mode}
+                    onChange={(e) => setAppSettings({...appSettings, offline_mode: e.target.checked})}
                   />
                   <span className="toggle-slider"></span>
                 </label>
@@ -508,8 +622,8 @@ export function AdminSettings() {
                 <label className="toggle-switch">
                   <input 
                     type="checkbox" 
-                    checked={appSettings.pushNotifications}
-                    onChange={(e) => setAppSettings({...appSettings, pushNotifications: e.target.checked})}
+                    checked={appSettings.push_notifications}
+                    onChange={(e) => setAppSettings({...appSettings, push_notifications: e.target.checked})}
                   />
                   <span className="toggle-slider"></span>
                 </label>
@@ -522,8 +636,8 @@ export function AdminSettings() {
                 <label className="toggle-switch">
                   <input 
                     type="checkbox" 
-                    checked={appSettings.analyticsEnabled}
-                    onChange={(e) => setAppSettings({...appSettings, analyticsEnabled: e.target.checked})}
+                    checked={appSettings.analytics_enabled}
+                    onChange={(e) => setAppSettings({...appSettings, analytics_enabled: e.target.checked})}
                   />
                   <span className="toggle-slider"></span>
                 </label>
@@ -544,8 +658,8 @@ export function AdminSettings() {
                 <label className="toggle-switch">
                   <input 
                     type="checkbox" 
-                    checked={notificationSettings.emailNotifications}
-                    onChange={(e) => setNotificationSettings({...notificationSettings, emailNotifications: e.target.checked})}
+                    checked={notificationSettings.email_notifications}
+                    onChange={(e) => setNotificationSettings({...notificationSettings, email_notifications: e.target.checked})}
                   />
                   <span className="toggle-slider"></span>
                 </label>
@@ -558,8 +672,8 @@ export function AdminSettings() {
                 <label className="toggle-switch">
                   <input 
                     type="checkbox" 
-                    checked={notificationSettings.smsNotifications}
-                    onChange={(e) => setNotificationSettings({...notificationSettings, smsNotifications: e.target.checked})}
+                    checked={notificationSettings.sms_notifications}
+                    onChange={(e) => setNotificationSettings({...notificationSettings, sms_notifications: e.target.checked})}
                   />
                   <span className="toggle-slider"></span>
                 </label>
@@ -572,8 +686,8 @@ export function AdminSettings() {
                 <label className="toggle-switch">
                   <input 
                     type="checkbox" 
-                    checked={notificationSettings.pushNotifications}
-                    onChange={(e) => setNotificationSettings({...notificationSettings, pushNotifications: e.target.checked})}
+                    checked={notificationSettings.push_notifications}
+                    onChange={(e) => setNotificationSettings({...notificationSettings, push_notifications: e.target.checked})}
                   />
                   <span className="toggle-slider"></span>
                 </label>
@@ -587,8 +701,8 @@ export function AdminSettings() {
                 <label className="toggle-switch">
                   <input 
                     type="checkbox" 
-                    checked={notificationSettings.newUserNotification}
-                    onChange={(e) => setNotificationSettings({...notificationSettings, newUserNotification: e.target.checked})}
+                    checked={notificationSettings.new_user_notification}
+                    onChange={(e) => setNotificationSettings({...notificationSettings, new_user_notification: e.target.checked})}
                   />
                   <span className="toggle-slider"></span>
                 </label>
@@ -601,22 +715,8 @@ export function AdminSettings() {
                 <label className="toggle-switch">
                   <input 
                     type="checkbox" 
-                    checked={notificationSettings.paymentNotification}
-                    onChange={(e) => setNotificationSettings({...notificationSettings, paymentNotification: e.target.checked})}
-                  />
-                  <span className="toggle-slider"></span>
-                </label>
-              </div>
-              <div className="setting-item">
-                <div className="setting-info">
-                  <h4>Subscription Expiry</h4>
-                  <p>Notify before subscription expires</p>
-                </div>
-                <label className="toggle-switch">
-                  <input 
-                    type="checkbox" 
-                    checked={notificationSettings.subscriptionExpiryNotification}
-                    onChange={(e) => setNotificationSettings({...notificationSettings, subscriptionExpiryNotification: e.target.checked})}
+                    checked={notificationSettings.payment_notification}
+                    onChange={(e) => setNotificationSettings({...notificationSettings, payment_notification: e.target.checked})}
                   />
                   <span className="toggle-slider"></span>
                 </label>
@@ -630,8 +730,8 @@ export function AdminSettings() {
                 <label className="toggle-switch">
                   <input 
                     type="checkbox" 
-                    checked={notificationSettings.dailyReportEmail}
-                    onChange={(e) => setNotificationSettings({...notificationSettings, dailyReportEmail: e.target.checked})}
+                    checked={notificationSettings.daily_report_email}
+                    onChange={(e) => setNotificationSettings({...notificationSettings, daily_report_email: e.target.checked})}
                   />
                   <span className="toggle-slider"></span>
                 </label>
@@ -644,8 +744,8 @@ export function AdminSettings() {
                 <label className="toggle-switch">
                   <input 
                     type="checkbox" 
-                    checked={notificationSettings.weeklyReportEmail}
-                    onChange={(e) => setNotificationSettings({...notificationSettings, weeklyReportEmail: e.target.checked})}
+                    checked={notificationSettings.weekly_report_email}
+                    onChange={(e) => setNotificationSettings({...notificationSettings, weekly_report_email: e.target.checked})}
                   />
                   <span className="toggle-slider"></span>
                 </label>
@@ -654,8 +754,8 @@ export function AdminSettings() {
                 <label>Report Recipients (comma separated)</label>
                 <input 
                   type="text" 
-                  value={notificationSettings.reportRecipients}
-                  onChange={(e) => setNotificationSettings({...notificationSettings, reportRecipients: e.target.value})}
+                  value={notificationSettings.report_recipients}
+                  onChange={(e) => setNotificationSettings({...notificationSettings, report_recipients: e.target.value})}
                   placeholder="admin@aitutor.com, manager@aitutor.com"
                 />
               </div>
@@ -673,7 +773,11 @@ export function AdminSettings() {
                   <p>Require 2FA for admin login</p>
                 </div>
                 <label className="toggle-switch">
-                  <input type="checkbox" />
+                  <input 
+                    type="checkbox" 
+                    checked={securitySettings.two_factor_auth}
+                    onChange={(e) => setSecuritySettings({...securitySettings, two_factor_auth: e.target.checked})}
+                  />
                   <span className="toggle-slider"></span>
                 </label>
               </div>
@@ -683,7 +787,11 @@ export function AdminSettings() {
                   <p>Restrict admin access to specific IPs</p>
                 </div>
                 <label className="toggle-switch">
-                  <input type="checkbox" />
+                  <input 
+                    type="checkbox" 
+                    checked={securitySettings.ip_whitelisting}
+                    onChange={(e) => setSecuritySettings({...securitySettings, ip_whitelisting: e.target.checked})}
+                  />
                   <span className="toggle-slider"></span>
                 </label>
               </div>
@@ -693,13 +801,20 @@ export function AdminSettings() {
                   <p>Log all admin session activities</p>
                 </div>
                 <label className="toggle-switch">
-                  <input type="checkbox" defaultChecked />
+                  <input 
+                    type="checkbox" 
+                    checked={securitySettings.session_logging}
+                    onChange={(e) => setSecuritySettings({...securitySettings, session_logging: e.target.checked})}
+                  />
                   <span className="toggle-slider"></span>
                 </label>
               </div>
               <div className="form-group" style={{ marginTop: '16px' }}>
                 <label>Password Policy</label>
-                <select>
+                <select
+                  value={securitySettings.password_policy}
+                  onChange={(e) => setSecuritySettings({...securitySettings, password_policy: e.target.value})}
+                >
                   <option value="basic">Basic (8 characters)</option>
                   <option value="medium">Medium (8 chars + numbers)</option>
                   <option value="strong">Strong (8 chars + numbers + symbols)</option>
@@ -707,7 +822,11 @@ export function AdminSettings() {
               </div>
               <div className="form-group">
                 <label>Auto Logout After (minutes)</label>
-                <input type="number" defaultValue={30} />
+                <input 
+                  type="number" 
+                  value={securitySettings.auto_logout_minutes}
+                  onChange={(e) => setSecuritySettings({...securitySettings, auto_logout_minutes: parseInt(e.target.value)})}
+                />
               </div>
             </div>
           )}
@@ -720,27 +839,47 @@ export function AdminSettings() {
               <div className="form-grid">
                 <div className="form-group">
                   <label>SMTP Host</label>
-                  <input type="text" placeholder="smtp.gmail.com" />
+                  <input 
+                    type="text" 
+                    value={emailSettings.smtp_host}
+                    onChange={(e) => setEmailSettings({...emailSettings, smtp_host: e.target.value})}
+                    placeholder="smtp.gmail.com" 
+                  />
                 </div>
                 <div className="form-group">
                   <label>SMTP Port</label>
-                  <input type="number" placeholder="587" />
+                  <input 
+                    type="number" 
+                    value={emailSettings.smtp_port}
+                    onChange={(e) => setEmailSettings({...emailSettings, smtp_port: parseInt(e.target.value)})}
+                  />
                 </div>
                 <div className="form-group">
                   <label>SMTP Username</label>
-                  <input type="text" placeholder="noreply@aitutor.com" />
-                </div>
-                <div className="form-group">
-                  <label>SMTP Password</label>
-                  <input type="password" placeholder="••••••••" />
+                  <input 
+                    type="text" 
+                    value={emailSettings.smtp_username}
+                    onChange={(e) => setEmailSettings({...emailSettings, smtp_username: e.target.value})}
+                    placeholder="noreply@aitutor.com" 
+                  />
                 </div>
                 <div className="form-group">
                   <label>From Email</label>
-                  <input type="email" placeholder="noreply@aitutor.com" />
+                  <input 
+                    type="email" 
+                    value={emailSettings.smtp_from_email}
+                    onChange={(e) => setEmailSettings({...emailSettings, smtp_from_email: e.target.value})}
+                    placeholder="noreply@aitutor.com" 
+                  />
                 </div>
                 <div className="form-group">
                   <label>From Name</label>
-                  <input type="text" placeholder="AI Tutor" />
+                  <input 
+                    type="text" 
+                    value={emailSettings.smtp_from_name}
+                    onChange={(e) => setEmailSettings({...emailSettings, smtp_from_name: e.target.value})}
+                    placeholder="AI Tutor" 
+                  />
                 </div>
               </div>
               <div className="setting-item">
@@ -749,7 +888,11 @@ export function AdminSettings() {
                   <p>Enable TLS encryption for emails</p>
                 </div>
                 <label className="toggle-switch">
-                  <input type="checkbox" defaultChecked />
+                  <input 
+                    type="checkbox" 
+                    checked={emailSettings.smtp_use_tls}
+                    onChange={(e) => setEmailSettings({...emailSettings, smtp_use_tls: e.target.checked})}
+                  />
                   <span className="toggle-slider"></span>
                 </label>
               </div>
@@ -767,21 +910,36 @@ export function AdminSettings() {
                   <p>Automatically backup database daily</p>
                 </div>
                 <label className="toggle-switch">
-                  <input type="checkbox" defaultChecked />
+                  <input 
+                    type="checkbox" 
+                    checked={databaseSettings.auto_backup}
+                    onChange={(e) => setDatabaseSettings({...databaseSettings, auto_backup: e.target.checked})}
+                  />
                   <span className="toggle-slider"></span>
                 </label>
               </div>
               <div className="form-group" style={{ marginTop: '16px' }}>
                 <label>Backup Time</label>
-                <input type="time" defaultValue="02:00" />
+                <input 
+                  type="time" 
+                  value={databaseSettings.backup_time}
+                  onChange={(e) => setDatabaseSettings({...databaseSettings, backup_time: e.target.value})}
+                />
               </div>
               <div className="form-group">
                 <label>Retention Period (days)</label>
-                <input type="number" defaultValue={30} />
+                <input 
+                  type="number" 
+                  value={databaseSettings.backup_retention_days}
+                  onChange={(e) => setDatabaseSettings({...databaseSettings, backup_retention_days: parseInt(e.target.value)})}
+                />
               </div>
               <div className="form-group">
                 <label>Backup Storage</label>
-                <select>
+                <select
+                  value={databaseSettings.backup_storage}
+                  onChange={(e) => setDatabaseSettings({...databaseSettings, backup_storage: e.target.value})}
+                >
                   <option value="local">Local Storage</option>
                   <option value="s3">AWS S3</option>
                   <option value="gcs">Google Cloud Storage</option>
