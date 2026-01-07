@@ -501,7 +501,7 @@ export function AdminSettings() {
                     type="text" 
                     value={apiSettings.firebase_project_id}
                     onChange={(e) => setApiSettings({...apiSettings, firebase_project_id: e.target.value})}
-                    placeholder="ai-tutor-app"
+                    placeholder="your-project-id"
                   />
                 </div>
                 <div className="form-group">
@@ -768,7 +768,7 @@ export function AdminSettings() {
                   type="text" 
                   value={notificationSettings.report_recipients}
                   onChange={(e) => setNotificationSettings({...notificationSettings, report_recipients: e.target.value})}
-                  placeholder="admin@aitutor.com, manager@aitutor.com"
+                  placeholder="admin@example.com, manager@example.com"
                 />
               </div>
             </div>
@@ -872,7 +872,7 @@ export function AdminSettings() {
                     type="text" 
                     value={emailSettings.smtp_username}
                     onChange={(e) => setEmailSettings({...emailSettings, smtp_username: e.target.value})}
-                    placeholder="noreply@aitutor.com" 
+                    placeholder="noreply@example.com" 
                   />
                 </div>
                 <div className="form-group">
@@ -881,7 +881,7 @@ export function AdminSettings() {
                     type="email" 
                     value={emailSettings.smtp_from_email}
                     onChange={(e) => setEmailSettings({...emailSettings, smtp_from_email: e.target.value})}
-                    placeholder="noreply@aitutor.com" 
+                    placeholder="noreply@example.com" 
                   />
                 </div>
                 <div className="form-group">
@@ -890,7 +890,7 @@ export function AdminSettings() {
                     type="text" 
                     value={emailSettings.smtp_from_name}
                     onChange={(e) => setEmailSettings({...emailSettings, smtp_from_name: e.target.value})}
-                    placeholder="AI Tutor" 
+                    placeholder="Your Site Name" 
                   />
                 </div>
               </div>
