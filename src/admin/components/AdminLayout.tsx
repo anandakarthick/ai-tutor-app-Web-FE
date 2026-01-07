@@ -32,6 +32,7 @@ import {
 } from 'lucide-react';
 import { useAdminStore } from '../store/adminStore';
 import { isAdminAuthenticated, clearAdminAuth, getRecentActivity } from '../../services/api/admin';
+import { useSettings } from '../../context/SettingsContext';
 import logoImage from '../../assets/images/logo.png';
 import './AdminLayout.css';
 
@@ -162,6 +163,7 @@ export function AdminLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const { admin, logout, isAuthenticated, checkAuth, _hasHydrated } = useAdminStore();
+  const { settings } = useSettings();
   
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -361,8 +363,8 @@ export function AdminLayout() {
       <aside className={`admin-sidebar ${sidebarOpen ? '' : 'collapsed'} ${mobileMenuOpen ? 'mobile-open' : ''}`}>
         <div className="sidebar-header">
           <Link to="/admin" className="admin-logo">
-            <img src={logoImage} alt="AI Tutor" />
-            {sidebarOpen && <span>AI Tutor Admin</span>}
+            <img src={logoImage} alt={settings.siteName} />
+            {sidebarOpen && <span>{settings.siteName} Admin</span>}
           </Link>
           <button className="sidebar-toggle desktop" onClick={() => setSidebarOpen(!sidebarOpen)}>
             <Menu size={20} />

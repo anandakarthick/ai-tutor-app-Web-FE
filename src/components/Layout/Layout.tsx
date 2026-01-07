@@ -22,6 +22,7 @@ import {
   Crown,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
+import { useSettings } from '../../context/SettingsContext';
 import logoImage from '../../assets/images/logo.png';
 import './Layout.css';
 
@@ -45,6 +46,7 @@ export function Layout({ children }: LayoutProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, student, logout } = useAuthStore();
+  const { settings } = useSettings();
 
   const handleLogout = async () => {
     await logout();
@@ -59,8 +61,8 @@ export function Layout({ children }: LayoutProps) {
           <Menu size={24} />
         </button>
         <Link to="/dashboard" className="mobile-logo">
-          <img src={logoImage} alt="AI Tutor" />
-          <span>AI Tutor</span>
+          <img src={logoImage} alt={settings.siteName} />
+          <span>{settings.siteName}</span>
         </Link>
         <Link to="/profile" className="mobile-avatar">
           {student?.studentName?.charAt(0) || user?.fullName?.charAt(0) || 'U'}
@@ -76,8 +78,8 @@ export function Layout({ children }: LayoutProps) {
       <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
           <Link to="/dashboard" className="sidebar-logo">
-            <img src={logoImage} alt="AI Tutor" />
-            <span>AI Tutor</span>
+            <img src={logoImage} alt={settings.siteName} />
+            <span>{settings.siteName}</span>
           </Link>
           <button className="close-btn" onClick={() => setSidebarOpen(false)}>
             <X size={24} />

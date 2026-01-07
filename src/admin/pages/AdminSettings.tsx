@@ -23,11 +23,13 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { getSettings, updateSettingsByCategory } from '../../services/api/admin';
+import { useSettings, clearSettingsCache } from '../../context/SettingsContext';
 import './AdminPages.css';
 
 export function AdminSettings() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { refreshSettings } = useSettings();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showApiKey, setShowApiKey] = useState(false);
@@ -239,6 +241,11 @@ export function AdminSettings() {
       }
 
       await updateSettingsByCategory(category, data);
+      
+      // Clear cache and refresh global settings context
+      clearSettingsCache();
+      await refreshSettings();
+      
       toast.success('Settings saved successfully!');
     } catch (error) {
       console.error('Error saving settings:', error);

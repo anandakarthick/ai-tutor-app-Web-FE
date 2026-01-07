@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { Layout, SessionTerminatedModal, SubscriptionGuard } from './components';
+import { SettingsProvider } from './context/SettingsContext';
 import {
   Landing,
   Dashboard,
@@ -241,31 +242,32 @@ function App() {
   }
 
   return (
-    <BrowserRouter>
-      <Toaster
-        position="top-center"
-        toastOptions={{
-          duration: 3000,
-          style: {
-            background: '#1C1917',
-            color: '#fff',
-            borderRadius: '12px',
-            padding: '12px 20px',
-          },
-          success: {
-            iconTheme: {
-              primary: '#22C55E',
-              secondary: '#fff',
+    <SettingsProvider>
+      <BrowserRouter>
+        <Toaster
+          position="top-center"
+          toastOptions={{
+            duration: 3000,
+            style: {
+              background: '#1C1917',
+              color: '#fff',
+              borderRadius: '12px',
+              padding: '12px 20px',
             },
-          },
-          error: {
-            iconTheme: {
-              primary: '#EF4444',
-              secondary: '#fff',
+            success: {
+              iconTheme: {
+                primary: '#22C55E',
+                secondary: '#fff',
+              },
             },
-          },
-        }}
-      />
+            error: {
+              iconTheme: {
+                primary: '#EF4444',
+                secondary: '#fff',
+              },
+            },
+          }}
+        />
 
       <Routes>
         {/* Landing Page */}
@@ -486,11 +488,12 @@ function App() {
       </Routes>
 
       {/* Session Terminated Modal */}
-      <SessionTerminatedModal
-        isOpen={sessionTerminated}
-        onClose={handleSessionModalClose}
-      />
-    </BrowserRouter>
+        <SessionTerminatedModal
+          isOpen={sessionTerminated}
+          onClose={handleSessionModalClose}
+        />
+      </BrowserRouter>
+    </SettingsProvider>
   );
 }
 

@@ -55,6 +55,7 @@ import {
   Send,
 } from 'lucide-react';
 import { subscriptionApi } from '../services/api';
+import { useSettings } from '../context/SettingsContext';
 import logoImage from '../assets/images/logo.png';
 import './Landing.css';
 
@@ -113,14 +114,14 @@ const testimonials = [
     name: 'Priya Sharma',
     role: 'Class 10 Student',
     initials: 'PS',
-    text: 'AI Tutor helped me improve my math scores from 60% to 90%. The explanations are so clear!',
+    text: 'This app helped me improve my math scores from 60% to 90%. The explanations are so clear!',
     rating: 5,
   },
   {
     name: 'Rahul Verma',
     role: 'Parent',
     initials: 'RV',
-    text: 'My son loves learning with AI Tutor. The gamification keeps him motivated every day.',
+    text: 'My son loves learning with this app. The gamification keeps him motivated every day.',
     rating: 5,
   },
   {
@@ -151,13 +152,14 @@ export function Landing() {
   const [scrolled, setScrolled] = useState(false);
   const [plans, setPlans] = useState<any[]>([]);
   const [loadingPlans, setLoadingPlans] = useState(true);
+  const { settings } = useSettings();
   
   // Support widget state
   const [supportOpen, setSupportOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [chatMessage, setChatMessage] = useState('');
   const [chatMessages, setChatMessages] = useState<{type: 'user' | 'bot', text: string}[]>([
-    { type: 'bot', text: 'Hello! 👋 Welcome to AI Tutor. How can I help you today?' }
+    { type: 'bot', text: `Hello! 👋 Welcome to ${settings.siteName}. How can I help you today?` }
   ]);
 
   useEffect(() => {
@@ -292,7 +294,7 @@ export function Landing() {
 
   // WhatsApp handler
   const handleWhatsApp = () => {
-    window.open('https://wa.me/919876543210?text=Hi! I have a question about AI Tutor.', '_blank');
+    window.open(`https://wa.me/${settings.whatsappNumber}?text=Hi! I have a question about ${settings.siteName}.`, '_blank');
   };
 
   return (
@@ -301,8 +303,8 @@ export function Landing() {
       <nav className={`navbar ${scrolled ? 'scrolled' : ''}`}>
         <div className="nav-container">
           <Link to="/" className="logo">
-            <img src={logoImage} alt="AI Tutor" />
-            <span>AI Tutor</span>
+            <img src={logoImage} alt={settings.siteName} />
+            <span>{settings.siteName}</span>
           </Link>
 
           <div className={`nav-links ${mobileMenuOpen ? 'mobile-open' : ''}`}>
@@ -343,7 +345,7 @@ export function Landing() {
               <span>AI-Powered Education Platform</span>
             </div>
             <h1>
-              Learn Smarter with <span className="gradient-text">AI Tutor</span>
+              Learn Smarter with <span className="gradient-text">{settings.siteName}</span>
             </h1>
             <p className="hero-description">
               Experience personalized education that adapts to your learning style.
@@ -382,8 +384,8 @@ export function Landing() {
               <div className="phone-notch"></div>
               <div className="phone-screen">
                 <div className="app-header">
-                  <img src={logoImage} alt="AI Tutor" className="app-logo" />
-                  <span>AI Tutor</span>
+                  <img src={logoImage} alt={settings.siteName} className="app-logo" />
+                  <span>{settings.siteName}</span>
                 </div>
                 <div className="app-greeting">
                   <span>Good Morning! 👋</span>
@@ -660,7 +662,7 @@ export function Landing() {
         <div className="section-container">
           <div className="cta-content">
             <h2>Ready to Start Learning?</h2>
-            <p>Join 50,000+ students already learning smarter with AI Tutor</p>
+            <p>Join 50,000+ students already learning smarter with {settings.siteName}</p>
             <div className="cta-buttons">
               <Link to="/register" className="btn btn-white btn-large">
                 Get Started Free
@@ -680,45 +682,45 @@ export function Landing() {
         <div className="footer-container">
           <div className="footer-brand">
             <Link to="/" className="logo">
-              <img src={logoImage} alt="AI Tutor" />
-              <span>AI Tutor</span>
+              <img src={logoImage} alt={settings.siteName} />
+              <span>{settings.siteName}</span>
             </Link>
             <p>Making quality education accessible to every student through the power of AI.</p>
             
             {/* Contact Info */}
             <div className="footer-contact">
-              <a href="mailto:support@aitutor.com" className="contact-item">
+              <a href={`mailto:${settings.supportEmail}`} className="contact-item">
                 <Mail size={16} />
-                <span>support@aitutor.com</span>
+                <span>{settings.supportEmail}</span>
               </a>
-              <a href="tel:+919876543210" className="contact-item">
+              <a href={`tel:${settings.supportPhone.replace(/\s/g, '')}`} className="contact-item">
                 <Phone size={16} />
-                <span>+91 98765 43210</span>
+                <span>{settings.supportPhone}</span>
               </a>
               <div className="contact-item">
                 <MapPin size={16} />
-                <span>Chennai, Tamil Nadu, India</span>
+                <span>{settings.address}</span>
               </div>
             </div>
             
             {/* Social Media */}
             <div className="social-links">
-              <a href="https://facebook.com/aitutor" target="_blank" rel="noopener noreferrer" className="social-link" title="Facebook">
+              <a href={settings.facebookUrl} target="_blank" rel="noopener noreferrer" className="social-link" title="Facebook">
                 <Facebook size={20} />
               </a>
-              <a href="https://twitter.com/aitutor" target="_blank" rel="noopener noreferrer" className="social-link" title="Twitter">
+              <a href={settings.twitterUrl} target="_blank" rel="noopener noreferrer" className="social-link" title="Twitter">
                 <Twitter size={20} />
               </a>
-              <a href="https://instagram.com/aitutor" target="_blank" rel="noopener noreferrer" className="social-link" title="Instagram">
+              <a href={settings.instagramUrl} target="_blank" rel="noopener noreferrer" className="social-link" title="Instagram">
                 <Instagram size={20} />
               </a>
-              <a href="https://linkedin.com/company/aitutor" target="_blank" rel="noopener noreferrer" className="social-link" title="LinkedIn">
+              <a href={settings.linkedinUrl} target="_blank" rel="noopener noreferrer" className="social-link" title="LinkedIn">
                 <Linkedin size={20} />
               </a>
-              <a href="https://youtube.com/@aitutor" target="_blank" rel="noopener noreferrer" className="social-link" title="YouTube">
+              <a href={settings.youtubeUrl} target="_blank" rel="noopener noreferrer" className="social-link" title="YouTube">
                 <Youtube size={20} />
               </a>
-              <a href="https://wa.me/919876543210" target="_blank" rel="noopener noreferrer" className="social-link whatsapp" title="WhatsApp">
+              <a href={`https://wa.me/${settings.whatsappNumber}`} target="_blank" rel="noopener noreferrer" className="social-link whatsapp" title="WhatsApp">
                 <WhatsAppIcon />
               </a>
             </div>
@@ -778,7 +780,7 @@ export function Landing() {
         </div>
         
         <div className="footer-bottom">
-          <p>© 2025 AI Tutor. All rights reserved. Powered by <a href="https://kasoftware.in/" target="_blank" rel="noopener noreferrer">KA Software</a></p>
+          <p>© {new Date().getFullYear()} {settings.siteName}. All rights reserved. Powered by <a href="https://kasoftware.in/" target="_blank" rel="noopener noreferrer">KA Software</a></p>
           <div className="footer-bottom-links">
             <Link to="/privacy">Privacy</Link>
             <Link to="/terms">Terms</Link>
@@ -794,13 +796,13 @@ export function Landing() {
           <div className="chat-window">
             <div className="chat-header">
               <div className="chat-header-info">
-                <div className="chat-avatar">
-                  <MessageSquare size={20} />
-                </div>
-                <div>
-                  <h4>AI Tutor Support</h4>
-                  <span>Online</span>
-                </div>
+              <div className="chat-avatar">
+              <MessageSquare size={20} />
+              </div>
+              <div>
+              <h4>{settings.siteName} Support</h4>
+              <span>Online</span>
+              </div>
               </div>
               <button className="chat-close" onClick={() => setChatOpen(false)}>
                 <X size={20} />
@@ -845,18 +847,18 @@ export function Landing() {
                 <span className="option-desc">Message us directly</span>
               </div>
             </button>
-            <a href="tel:+919876543210" className="support-option phone">
+            <a href={`tel:${settings.supportPhone.replace(/\s/g, '')}`} className="support-option phone">
               <Phone size={24} />
               <div>
                 <span className="option-title">Call Us</span>
-                <span className="option-desc">+91 98765 43210</span>
+                <span className="option-desc">{settings.supportPhone}</span>
               </div>
             </a>
-            <a href="mailto:support@aitutor.com" className="support-option email">
+            <a href={`mailto:${settings.supportEmail}`} className="support-option email">
               <Mail size={24} />
               <div>
                 <span className="option-title">Email</span>
-                <span className="option-desc">support@aitutor.com</span>
+                <span className="option-desc">{settings.supportEmail}</span>
               </div>
             </a>
           </div>

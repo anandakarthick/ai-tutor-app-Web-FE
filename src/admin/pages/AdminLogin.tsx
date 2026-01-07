@@ -8,12 +8,14 @@ import { Eye, EyeOff, Shield, Lock, Mail, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAdminStore } from '../store/adminStore';
 import { adminLogin, setAdminAuth } from '../../services/api/admin';
+import { useSettings } from '../../context/SettingsContext';
 import logoImage from '../../assets/images/logo.png';
 import './AdminLogin.css';
 
 export function AdminLogin() {
   const navigate = useNavigate();
   const { login } = useAdminStore();
+  const { settings } = useSettings();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -71,8 +73,8 @@ export function AdminLogin() {
       <div className="login-container">
         <div className="login-left">
           <div className="login-branding">
-            <img src={logoImage} alt="AI Tutor" />
-            <h1>AI Tutor Admin</h1>
+            <img src={logoImage} alt={settings.siteName} />
+            <h1>{settings.siteName} Admin</h1>
             <p>Manage your educational platform</p>
           </div>
           <div className="login-features">
