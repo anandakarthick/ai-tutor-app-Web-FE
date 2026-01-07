@@ -6,10 +6,12 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Play, CheckCircle, Users, School, Building, Send, Calendar, Clock, Video } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useSettings } from '../context/SettingsContext';
 import logoImage from '../assets/images/logo.png';
 import './StaticPages.css';
 
 export function RequestDemo() {
+  const { settings } = useSettings();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -50,8 +52,8 @@ export function RequestDemo() {
       <header className="static-header">
         <div className="header-container">
           <Link to="/" className="logo">
-            <img src={logoImage} alt="AI Tutor" />
-            <span>AI Tutor</span>
+            <img src={logoImage} alt={settings.siteName} />
+            <span>{settings.siteName}</span>
           </Link>
           <Link to="/" className="back-link">
             <ArrowLeft size={20} />
@@ -64,7 +66,7 @@ export function RequestDemo() {
         <div className="content-container">
           <div className="demo-hero">
             <h1>Request a Demo</h1>
-            <p>See how AI Tutor can transform learning for your school or organization</p>
+            <p>See how {settings.siteName} can transform learning for your school or organization</p>
           </div>
 
           <div className="demo-layout">
@@ -103,7 +105,7 @@ export function RequestDemo() {
 
               <div className="trusted-by">
                 <h3>Trusted by 500+ Schools</h3>
-                <p>Join leading educational institutions already using AI Tutor</p>
+                <p>Join leading educational institutions already using {settings.siteName}</p>
               </div>
             </div>
 
@@ -235,7 +237,7 @@ export function RequestDemo() {
       </main>
 
       <footer className="static-footer">
-        <p>© 2025 AI Tutor. All rights reserved. Powered by <a href="https://kasoftware.in/" target="_blank" rel="noopener noreferrer">KA Software</a></p>
+        <p>© {new Date().getFullYear()} {settings.siteName}. All rights reserved. Powered by <a href="https://kasoftware.in/" target="_blank" rel="noopener noreferrer">KA Software</a></p>
       </footer>
     </div>
   );

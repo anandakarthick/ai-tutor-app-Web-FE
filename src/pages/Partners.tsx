@@ -4,17 +4,20 @@
 
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Handshake, School, Building, Gift, TrendingUp, Users, CheckCircle, ArrowRight } from 'lucide-react';
+import { useSettings } from '../context/SettingsContext';
 import logoImage from '../assets/images/logo.png';
 import './StaticPages.css';
 
 export function Partners() {
+  const { settings } = useSettings();
+  
   return (
     <div className="static-page">
       <header className="static-header">
         <div className="header-container">
           <Link to="/" className="logo">
-            <img src={logoImage} alt="AI Tutor" />
-            <span>AI Tutor</span>
+            <img src={logoImage} alt={settings.siteName} />
+            <span>{settings.siteName}</span>
           </Link>
           <Link to="/" className="back-link">
             <ArrowLeft size={20} />
@@ -60,7 +63,7 @@ export function Partners() {
                 <li><CheckCircle size={16} /> Brand visibility</li>
                 <li><CheckCircle size={16} /> Analytics & insights</li>
               </ul>
-              <a href="mailto:partners@aitutor.in" className="partner-cta">
+              <a href={`mailto:${settings.supportEmail}`} className="partner-cta">
                 Contact Us <ArrowRight size={16} />
               </a>
             </div>
@@ -70,21 +73,21 @@ export function Partners() {
                 <Handshake size={40} />
               </div>
               <h3>Affiliate Partners</h3>
-              <p>Earn commissions by referring students and schools to AI Tutor.</p>
+              <p>Earn commissions by referring students and schools to {settings.siteName}.</p>
               <ul>
                 <li><CheckCircle size={16} /> 20% commission per sale</li>
                 <li><CheckCircle size={16} /> Real-time tracking</li>
                 <li><CheckCircle size={16} /> Marketing materials</li>
                 <li><CheckCircle size={16} /> Monthly payouts</li>
               </ul>
-              <a href="mailto:affiliate@aitutor.in" className="partner-cta">
+              <a href={`mailto:${settings.supportEmail}`} className="partner-cta">
                 Join Program <ArrowRight size={16} />
               </a>
             </div>
           </section>
 
           <section className="partner-benefits">
-            <h2>Why Partner With AI Tutor?</h2>
+            <h2>Why Partner With {settings.siteName}?</h2>
             <div className="benefits-grid">
               <div className="benefit-item">
                 <TrendingUp size={24} />
@@ -125,7 +128,7 @@ export function Partners() {
           <section className="partner-cta-section">
             <h2>Ready to Partner?</h2>
             <p>Contact our partnerships team to discuss collaboration opportunities</p>
-            <a href="mailto:partners@aitutor.in" className="cta-button">
+            <a href={`mailto:${settings.supportEmail}`} className="cta-button">
               Contact Partnerships Team
             </a>
           </section>
@@ -133,7 +136,7 @@ export function Partners() {
       </main>
 
       <footer className="static-footer">
-        <p>© 2025 AI Tutor. All rights reserved. Powered by <a href="https://kasoftware.in/" target="_blank" rel="noopener noreferrer">KA Software</a></p>
+        <p>© {new Date().getFullYear()} {settings.siteName}. All rights reserved. Powered by <a href="https://kasoftware.in/" target="_blank" rel="noopener noreferrer">KA Software</a></p>
       </footer>
     </div>
   );

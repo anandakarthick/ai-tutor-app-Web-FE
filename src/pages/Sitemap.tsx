@@ -4,10 +4,12 @@
 
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Home, BookOpen, Users, HelpCircle, FileText, Download, ExternalLink } from 'lucide-react';
+import { useSettings } from '../context/SettingsContext';
 import logoImage from '../assets/images/logo.png';
 import './StaticPages.css';
 
 export function Sitemap() {
+  const { settings } = useSettings();
   const sitemapSections = [
     {
       title: 'Main Pages',
@@ -89,8 +91,8 @@ export function Sitemap() {
       <header className="static-header">
         <div className="header-container">
           <Link to="/" className="logo">
-            <img src={logoImage} alt="AI Tutor" />
-            <span>AI Tutor</span>
+            <img src={logoImage} alt={settings.siteName} />
+            <span>{settings.siteName}</span>
           </Link>
           <Link to="/" className="back-link">
             <ArrowLeft size={20} />
@@ -102,7 +104,7 @@ export function Sitemap() {
       <main className="static-content">
         <div className="content-container">
           <h1>Sitemap</h1>
-          <p className="subtitle">Find everything on AI Tutor</p>
+          <p className="subtitle">Find everything on {settings.siteName}</p>
 
           <div className="sitemap-grid">
             {sitemapSections.map((section, index) => {
@@ -131,7 +133,7 @@ export function Sitemap() {
       </main>
 
       <footer className="static-footer">
-        <p>© 2025 AI Tutor. All rights reserved. Powered by <a href="https://kasoftware.in/" target="_blank" rel="noopener noreferrer">KA Software</a></p>
+        <p>© {new Date().getFullYear()} {settings.siteName}. All rights reserved. Powered by <a href="https://kasoftware.in/" target="_blank" rel="noopener noreferrer">KA Software</a></p>
       </footer>
     </div>
   );

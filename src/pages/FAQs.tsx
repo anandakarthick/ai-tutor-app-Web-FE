@@ -5,26 +5,28 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, ChevronDown, ChevronUp, Search, HelpCircle, CreditCard, BookOpen, User, Settings } from 'lucide-react';
+import { useSettings } from '../context/SettingsContext';
 import logoImage from '../assets/images/logo.png';
 import './StaticPages.css';
 
-const faqCategories = [
+// Function to generate FAQ categories with dynamic site name
+const getFaqCategories = (siteName: string, supportEmail: string) => [
   {
     id: 'general',
     name: 'General',
     icon: HelpCircle,
     faqs: [
       {
-        question: 'What is AI Tutor?',
-        answer: 'AI Tutor is an AI-powered educational platform designed to provide personalized learning experiences for K-12 students. Our platform adapts to each student\'s learning style and pace, offering instant doubt resolution, smart quizzes, and comprehensive progress tracking.'
+        question: `What is ${siteName}?`,
+        answer: `${siteName} is an AI-powered educational platform designed to provide personalized learning experiences for K-12 students. Our platform adapts to each student's learning style and pace, offering instant doubt resolution, smart quizzes, and comprehensive progress tracking.`
       },
       {
         question: 'Which boards and classes are supported?',
-        answer: 'AI Tutor supports CBSE, ICSE, and major State Board curricula for classes 1 to 12. We cover all core subjects including Mathematics, Science, English, Hindi, Physics, Chemistry, Biology, and Social Science.'
+        answer: `${siteName} supports CBSE, ICSE, and major State Board curricula for classes 1 to 12. We cover all core subjects including Mathematics, Science, English, Hindi, Physics, Chemistry, Biology, and Social Science.`
       },
       {
-        question: 'Is AI Tutor available in regional languages?',
-        answer: 'Yes! AI Tutor supports multiple languages including English, Hindi, Tamil, Telugu, Kannada, Malayalam, Marathi, Bengali, and Gujarati. You can choose your preferred medium of instruction.'
+        question: `Is ${siteName} available in regional languages?`,
+        answer: `Yes! ${siteName} supports multiple languages including English, Hindi, Tamil, Telugu, Kannada, Malayalam, Marathi, Bengali, and Gujarati. You can choose your preferred medium of instruction.`
       },
       {
         question: 'How does the AI personalization work?',
@@ -112,7 +114,7 @@ const faqCategories = [
     faqs: [
       {
         question: 'Which devices are supported?',
-        answer: 'AI Tutor works on Android (8.0+), iOS (14.0+), and all modern web browsers (Chrome, Firefox, Safari, Edge). We recommend using the latest version for best experience.'
+        answer: `${siteName} works on Android (8.0+), iOS (14.0+), and all modern web browsers (Chrome, Firefox, Safari, Edge). We recommend using the latest version for best experience.`
       },
       {
         question: 'The app is running slow. What should I do?',
@@ -124,16 +126,20 @@ const faqCategories = [
       },
       {
         question: 'How do I report a bug or issue?',
-        answer: 'You can report issues through the app (Settings > Help > Report Issue) or email us at support@aitutor.in with details and screenshots.'
+        answer: `You can report issues through the app (Settings > Help > Report Issue) or email us at ${supportEmail} with details and screenshots.`
       }
     ]
   }
 ];
 
 export function FAQs() {
+  const { settings } = useSettings();
   const [activeCategory, setActiveCategory] = useState('general');
   const [expandedFaq, setExpandedFaq] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Get FAQ categories with dynamic settings
+  const faqCategories = getFaqCategories(settings.siteName, settings.supportEmail);
 
   const filteredFaqs = faqCategories.map(category => ({
     ...category,
@@ -150,8 +156,8 @@ export function FAQs() {
       <header className="static-header">
         <div className="header-container">
           <Link to="/" className="logo">
-            <img src={logoImage} alt="AI Tutor" />
-            <span>AI Tutor</span>
+            <img src={logoImage} alt={settings.siteName} />
+            <span>{settings.siteName}</span>
           </Link>
           <Link to="/" className="back-link">
             <ArrowLeft size={20} />
@@ -164,7 +170,7 @@ export function FAQs() {
         <div className="content-container">
           <div className="faq-hero">
             <h1>Frequently Asked Questions</h1>
-            <p>Find answers to common questions about AI Tutor</p>
+            <p>Find answers to common questions about {settings.siteName}</p>
             
             <div className="faq-search">
               <Search size={20} />
@@ -235,7 +241,7 @@ export function FAQs() {
       </main>
 
       <footer className="static-footer">
-        <p>© 2025 AI Tutor. All rights reserved. Powered by <a href="https://kasoftware.in/" target="_blank" rel="noopener noreferrer">KA Software</a></p>
+        <p>© {new Date().getFullYear()} {settings.siteName}. All rights reserved. Powered by <a href="https://kasoftware.in/" target="_blank" rel="noopener noreferrer">KA Software</a></p>
       </footer>
     </div>
   );

@@ -4,17 +4,20 @@
 
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Download, FileText, Image, Video, Mail, ExternalLink } from 'lucide-react';
+import { useSettings } from '../context/SettingsContext';
 import logoImage from '../assets/images/logo.png';
 import './StaticPages.css';
 
 export function PressKit() {
+  const { settings } = useSettings();
+  
   return (
     <div className="static-page">
       <header className="static-header">
         <div className="header-container">
           <Link to="/" className="logo">
-            <img src={logoImage} alt="AI Tutor" />
-            <span>AI Tutor</span>
+            <img src={logoImage} alt={settings.siteName} />
+            <span>{settings.siteName}</span>
           </Link>
           <Link to="/" className="back-link">
             <ArrowLeft size={20} />
@@ -31,9 +34,9 @@ export function PressKit() {
           </div>
 
           <section className="press-section">
-            <h2>About AI Tutor</h2>
+            <h2>About {settings.siteName}</h2>
             <p>
-              AI Tutor is India's leading AI-powered educational platform, making quality education 
+              {settings.siteName} is India's leading AI-powered educational platform, making quality education 
               accessible to every student through personalized learning experiences. Founded in 2024, 
               we serve over 50,000 students across India with our innovative approach to K-12 education.
             </p>
@@ -112,19 +115,19 @@ export function PressKit() {
             <div className="press-releases">
               <div className="press-item">
                 <span className="press-date">Jan 2025</span>
-                <h4>AI Tutor Raises Series A Funding</h4>
+                <h4>{settings.siteName} Raises Series A Funding</h4>
                 <p>Leading EdTech platform secures funding to expand across India</p>
                 <a href="#" className="read-more">Read More <ExternalLink size={14} /></a>
               </div>
               <div className="press-item">
                 <span className="press-date">Dec 2024</span>
-                <h4>AI Tutor Partners with 200 Schools in Tamil Nadu</h4>
+                <h4>{settings.siteName} Partners with 200 Schools in Tamil Nadu</h4>
                 <p>Strategic partnership to bring AI-powered learning to government schools</p>
                 <a href="#" className="read-more">Read More <ExternalLink size={14} /></a>
               </div>
               <div className="press-item">
                 <span className="press-date">Nov 2024</span>
-                <h4>AI Tutor Launches Voice-Based Learning</h4>
+                <h4>{settings.siteName} Launches Voice-Based Learning</h4>
                 <p>New feature enables students to learn through voice commands</p>
                 <a href="#" className="read-more">Read More <ExternalLink size={14} /></a>
               </div>
@@ -136,7 +139,7 @@ export function PressKit() {
             <div className="contact-card">
               <h4>For press inquiries, please contact:</h4>
               <p><strong>Press Relations Team</strong></p>
-              <p><Mail size={16} /> press@aitutor.in</p>
+              <p><Mail size={16} /> {settings.supportEmail}</p>
               <p>We typically respond within 24 hours.</p>
             </div>
           </section>
@@ -144,7 +147,7 @@ export function PressKit() {
       </main>
 
       <footer className="static-footer">
-        <p>© 2025 AI Tutor. All rights reserved. Powered by <a href="https://kasoftware.in/" target="_blank" rel="noopener noreferrer">KA Software</a></p>
+        <p>© {new Date().getFullYear()} {settings.siteName}. All rights reserved. Powered by <a href="https://kasoftware.in/" target="_blank" rel="noopener noreferrer">KA Software</a></p>
       </footer>
     </div>
   );

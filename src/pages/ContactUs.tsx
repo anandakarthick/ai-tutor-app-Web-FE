@@ -5,11 +5,13 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Mail, Phone, MapPin, Clock, Send, MessageCircle, Loader2 } from 'lucide-react';
+import { useSettings } from '../context/SettingsContext';
 import logoImage from '../assets/images/logo.png';
 import toast from 'react-hot-toast';
 import './StaticPages.css';
 
 export function ContactUs() {
+  const { settings } = useSettings();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -40,8 +42,8 @@ export function ContactUs() {
       <header className="static-header">
         <div className="header-container">
           <Link to="/" className="logo">
-            <img src={logoImage} alt="AI Tutor" />
-            <span>AI Tutor</span>
+            <img src={logoImage} alt={settings.siteName} />
+            <span>{settings.siteName}</span>
           </Link>
           <Link to="/" className="back-link">
             <ArrowLeft size={20} />
@@ -67,8 +69,7 @@ export function ContactUs() {
                   </div>
                   <div>
                     <h3>Email</h3>
-                    <p>support@aitutor.in</p>
-                    <p>careers@aitutor.in</p>
+                    <p>{settings.supportEmail}</p>
                   </div>
                 </div>
 
@@ -78,8 +79,7 @@ export function ContactUs() {
                   </div>
                   <div>
                     <h3>Phone</h3>
-                    <p>+91-9876543210</p>
-                    <p>+91-9876543211</p>
+                    <p>{settings.supportPhone}</p>
                   </div>
                 </div>
 
@@ -89,9 +89,7 @@ export function ContactUs() {
                   </div>
                   <div>
                     <h3>Address</h3>
-                    <p>AI Tutor Technologies Pvt. Ltd.</p>
-                    <p>123, Tech Park, Koramangala</p>
-                    <p>Bangalore, Karnataka 560034</p>
+                    <p>{settings.address}</p>
                   </div>
                 </div>
 
@@ -187,7 +185,7 @@ export function ContactUs() {
       </main>
 
       <footer className="static-footer">
-        <p>© 2025 AI Tutor. All rights reserved. Powered by <a href="https://kasoftware.in/" target="_blank" rel="noopener noreferrer">KA Software</a></p>
+        <p>© {new Date().getFullYear()} {settings.siteName}. All rights reserved. Powered by <a href="https://kasoftware.in/" target="_blank" rel="noopener noreferrer">KA Software</a></p>
       </footer>
     </div>
   );

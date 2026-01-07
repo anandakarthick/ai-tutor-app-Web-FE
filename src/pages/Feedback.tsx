@@ -6,10 +6,12 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Send, Star, ThumbsUp, ThumbsDown, MessageSquare, Lightbulb, Bug, Heart } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useSettings } from '../context/SettingsContext';
 import logoImage from '../assets/images/logo.png';
 import './StaticPages.css';
 
 export function Feedback() {
+  const { settings } = useSettings();
   const [feedbackType, setFeedbackType] = useState('general');
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
@@ -53,8 +55,8 @@ export function Feedback() {
       <header className="static-header">
         <div className="header-container">
           <Link to="/" className="logo">
-            <img src={logoImage} alt="AI Tutor" />
-            <span>AI Tutor</span>
+            <img src={logoImage} alt={settings.siteName} />
+            <span>{settings.siteName}</span>
           </Link>
           <Link to="/" className="back-link">
             <ArrowLeft size={20} />
@@ -67,7 +69,7 @@ export function Feedback() {
         <div className="content-container">
           <div className="feedback-hero">
             <h1>We Value Your Feedback</h1>
-            <p>Help us improve AI Tutor by sharing your thoughts and suggestions</p>
+            <p>Help us improve {settings.siteName} by sharing your thoughts and suggestions</p>
           </div>
 
           <div className="feedback-layout">
@@ -182,7 +184,7 @@ export function Feedback() {
                     placeholder={
                       feedbackType === 'suggestion' ? 'Describe the feature you\'d like to see...' :
                       feedbackType === 'bug' ? 'Describe the issue in detail. Include steps to reproduce if possible...' :
-                      feedbackType === 'appreciation' ? 'Tell us what you love about AI Tutor...' :
+                      feedbackType === 'appreciation' ? `Tell us what you love about ${settings.siteName}...` :
                       'Share your thoughts, suggestions, or concerns...'
                     }
                   />
@@ -245,7 +247,7 @@ export function Feedback() {
       </main>
 
       <footer className="static-footer">
-        <p>© 2025 AI Tutor. All rights reserved. Powered by <a href="https://kasoftware.in/" target="_blank" rel="noopener noreferrer">KA Software</a></p>
+        <p>© {new Date().getFullYear()} {settings.siteName}. All rights reserved. Powered by <a href="https://kasoftware.in/" target="_blank" rel="noopener noreferrer">KA Software</a></p>
       </footer>
     </div>
   );
