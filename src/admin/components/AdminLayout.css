@@ -393,15 +393,41 @@
 }
 
 .notification-list {
-  max-height: 250px;
+  max-height: 280px;
   overflow-y: auto;
 }
 
+.notification-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 20px;
+  color: var(--admin-text-muted);
+}
+
+.notification-empty svg {
+  opacity: 0.3;
+  margin-bottom: 10px;
+}
+
+.notification-empty p {
+  font-size: 12px;
+}
+
 .notification-item {
-  padding: 10px 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
   border-bottom: 1px solid var(--admin-border);
   transition: background 0.2s;
   cursor: pointer;
+  position: relative;
+}
+
+.notification-item.unread {
+  background: rgba(249, 115, 22, 0.05);
 }
 
 .notification-item:hover {
@@ -412,15 +438,59 @@
   border-bottom: none;
 }
 
-.notification-item p {
-  font-size: 12px;
-  color: var(--admin-text);
-  margin-bottom: 3px;
+.notification-content {
+  flex: 1;
+  min-width: 0;
 }
 
-.notification-item span {
+.notification-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--admin-text);
+  margin-bottom: 2px !important;
+}
+
+.notification-message {
+  font-size: 11px;
+  color: var(--admin-text-muted);
+  margin-bottom: 4px !important;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.notification-time {
   font-size: 10px;
   color: var(--admin-text-muted);
+}
+
+.unread-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--admin-primary);
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.dropdown-header button {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  color: var(--admin-primary);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.dropdown-header button:hover {
+  background: rgba(249, 115, 22, 0.1);
 }
 
 .dropdown-footer {
@@ -432,6 +502,13 @@
   font-weight: 500;
   text-decoration: none;
   border-top: 1px solid var(--admin-border);
+  background: none;
+  border-left: none;
+  border-right: none;
+  border-bottom: none;
+  width: 100%;
+  cursor: pointer;
+  transition: background 0.2s;
 }
 
 .dropdown-footer:hover {

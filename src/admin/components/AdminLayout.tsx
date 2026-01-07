@@ -2,7 +2,7 @@
  * Admin Layout Component
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Outlet, useNavigate, useLocation, Link } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -24,15 +24,50 @@ import {
   Wallet,
   Layers,
   UserCog,
-  HelpCircle,
   Moon,
   Sun,
   Loader2,
+  CheckCheck,
 } from 'lucide-react';
 import { useAdminStore } from '../store/adminStore';
-import { isAdminAuthenticated, clearAdminAuth } from '../../services/api/admin';
+import { isAdminAuthenticated, clearAdminAuth, getRecentActivity } from '../../services/api/admin';
 import logoImage from '../../assets/images/logo.png';
 import './AdminLayout.css';
+
+interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  time: Date;
+  read: boolean;
+  type: 'info' | 'success' | 'warning' | 'error';
+}
+
+// LocalStorage key for read notifications
+const READ_NOTIFICATIONS_KEY = 'admin_read_notifications';
+const LAST_NOTIFICATION_CHECK_KEY = 'admin_last_notification_check';
+
+// Helper functions for localStorage
+const getReadNotificationIds = (): string[] => {
+  try {
+    const stored = localStorage.getItem(READ_NOTIFICATIONS_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+};
+
+const saveReadNotificationIds = (ids: string[]) => {
+  localStorage.setItem(READ_NOTIFICATIONS_KEY, JSON.stringify(ids));
+};
+
+const getLastNotificationCheck = (): string | null => {
+  return localStorage.getItem(LAST_NOTIFICATION_CHECK_KEY);
+};
+
+const saveLastNotificationCheck = (timestamp: string) => {
+  localStorage.setItem(LAST_NOTIFICATION_CHECK_KEY, timestamp);
+};
 
 const menuItems = [
   { 
@@ -46,7 +81,6 @@ const menuItems = [
     label: 'Students', 
     icon: Users, 
     path: '/admin/students',
-    badge: 'New'
   },
   { 
     id: 'schools', 
@@ -127,26 +161,82 @@ export function AdminLayout() {
   const [expandedMenu, setExpandedMenu] = useState<string | null>(null);
   const [darkMode, setDarkMode] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
-  const [notifications] = useState([
-    { id: 1, title: 'New student registered', time: '5 min ago' },
-    { id: 2, title: 'Payment received', time: '1 hour ago' },
-    { id: 3, title: 'Server alert', time: '2 hours ago' },
-  ]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+
+  // Generate unique notification ID based on activity data
+  const generateNotificationId = useCallback((activity: any, index: number): string => {
+    // Create a unique ID based on activity content and time
+    const timeStr = new Date(activity.time).getTime().toString();
+    const typeStr = activity.type || 'activity';
+    return `${typeStr}-${timeStr}-${index}`;
+  }, []);
+
+  // Fetch notifications on mount
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const response = await getRecentActivity(10);
+        if (response.success && response.data) {
+          const readIds = getReadNotificationIds();
+          const lastCheck = getLastNotificationCheck();
+          
+          // Convert activities to notifications
+          const notifs: Notification[] = response.data.map((activity: any, index: number) => {
+            const notifId = generateNotificationId(activity, index);
+            const activityTime = new Date(activity.time);
+            
+            // Mark as read if:
+            // 1. It's in the read IDs list, OR
+            // 2. It's older than the last check time (existing notifications before user started using the system)
+            const isRead = readIds.includes(notifId) || 
+                          (lastCheck && activityTime < new Date(lastCheck));
+            
+            return {
+              id: notifId,
+              title: activity.type === 'payment' ? 'Payment Received' : 
+                     activity.type === 'payment_failed' ? 'Payment Failed' :
+                     activity.type === 'registration' ? 'New Registration' : 'Activity',
+              message: activity.message,
+              time: activityTime,
+              read: isRead,
+              type: activity.type === 'payment' ? 'success' : 
+                    activity.type === 'payment_failed' ? 'error' : 'info',
+            };
+          });
+          
+          setNotifications(notifs);
+          
+          // Set last check time if not set (first time user)
+          if (!lastCheck) {
+            saveLastNotificationCheck(new Date().toISOString());
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching notifications:', error);
+        setNotifications([]);
+      }
+    };
+
+    if (isAuthenticated || isAdminAuthenticated()) {
+      fetchNotifications();
+      
+      // Refresh notifications every 2 minutes
+      const interval = setInterval(fetchNotifications, 120000);
+      return () => clearInterval(interval);
+    }
+  }, [isAuthenticated, generateNotificationId]);
 
   // Check authentication on mount and when hydration completes
   useEffect(() => {
     const verifyAuth = () => {
-      // First check localStorage directly
       const hasToken = isAdminAuthenticated();
       
       if (hasToken) {
-        // Try to sync store with localStorage
         checkAuth();
         setIsCheckingAuth(false);
       } else if (_hasHydrated) {
-        // Store has hydrated but no token in localStorage
         if (!isAuthenticated) {
           navigate('/admin/login');
         }
@@ -154,7 +244,6 @@ export function AdminLayout() {
       }
     };
 
-    // Small delay to allow hydration
     const timer = setTimeout(verifyAuth, 100);
     return () => clearTimeout(timer);
   }, [_hasHydrated, isAuthenticated, checkAuth, navigate]);
@@ -166,7 +255,26 @@ export function AdminLayout() {
     }
   }, [isCheckingAuth, isAuthenticated, navigate]);
 
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.notification-wrapper')) {
+        setShowNotifications(false);
+      }
+      if (!target.closest('.profile-wrapper')) {
+        setShowProfileMenu(false);
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
+
   const handleLogout = () => {
+    // Clear notification data on logout
+    localStorage.removeItem(READ_NOTIFICATIONS_KEY);
+    localStorage.removeItem(LAST_NOTIFICATION_CHECK_KEY);
     logout();
     clearAdminAuth();
     navigate('/admin/login');
@@ -181,6 +289,48 @@ export function AdminLayout() {
 
   const toggleSubmenu = (menuId: string) => {
     setExpandedMenu(expandedMenu === menuId ? null : menuId);
+  };
+
+  const unreadCount = notifications.filter(n => !n.read).length;
+
+  const markAllAsRead = () => {
+    // Get all notification IDs and save to localStorage
+    const allIds = notifications.map(n => n.id);
+    const existingIds = getReadNotificationIds();
+    const newIds = [...new Set([...existingIds, ...allIds])];
+    saveReadNotificationIds(newIds);
+    
+    // Update last check time
+    saveLastNotificationCheck(new Date().toISOString());
+    
+    // Update state
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+  };
+
+  const markAsRead = (id: string) => {
+    // Save to localStorage
+    const existingIds = getReadNotificationIds();
+    if (!existingIds.includes(id)) {
+      saveReadNotificationIds([...existingIds, id]);
+    }
+    
+    // Update state
+    setNotifications(prev => prev.map(n => 
+      n.id === id ? { ...n, read: true } : n
+    ));
+  };
+
+  const formatTimeAgo = (date: Date) => {
+    const now = new Date();
+    const diffMs = now.getTime() - new Date(date).getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins} min ago`;
+    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+    return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
   };
 
   // Show loading while checking auth
@@ -266,7 +416,6 @@ export function AdminLayout() {
                     {sidebarOpen && (
                       <>
                         <span>{item.label}</span>
-                        {item.badge && <span className="nav-badge">{item.badge}</span>}
                       </>
                     )}
                   </Link>
@@ -277,10 +426,6 @@ export function AdminLayout() {
         </nav>
 
         <div className="sidebar-footer">
-          <Link to="/admin/help" className="nav-item">
-            <HelpCircle size={20} />
-            {sidebarOpen && <span>Help & Support</span>}
-          </Link>
           <button className="nav-item logout" onClick={handleLogout}>
             <LogOut size={20} />
             {sidebarOpen && <span>Logout</span>}
@@ -318,29 +463,63 @@ export function AdminLayout() {
             <div className="notification-wrapper">
               <button 
                 className="header-btn notification-btn"
-                onClick={() => setShowNotifications(!showNotifications)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowNotifications(!showNotifications);
+                  setShowProfileMenu(false);
+                }}
               >
                 <Bell size={20} />
-                <span className="notification-badge">3</span>
+                {unreadCount > 0 && (
+                  <span className="notification-badge">{unreadCount > 9 ? '9+' : unreadCount}</span>
+                )}
               </button>
 
               {showNotifications && (
                 <div className="notification-dropdown">
                   <div className="dropdown-header">
                     <h4>Notifications</h4>
-                    <button>Mark all read</button>
+                    {unreadCount > 0 && (
+                      <button onClick={markAllAsRead}>
+                        <CheckCheck size={14} />
+                        Mark all read
+                      </button>
+                    )}
                   </div>
                   <div className="notification-list">
-                    {notifications.map((notif) => (
-                      <div key={notif.id} className="notification-item">
-                        <p>{notif.title}</p>
-                        <span>{notif.time}</span>
+                    {notifications.length === 0 ? (
+                      <div className="notification-empty">
+                        <Bell size={32} />
+                        <p>No notifications yet</p>
                       </div>
-                    ))}
+                    ) : (
+                      notifications.map((notif) => (
+                        <div 
+                          key={notif.id} 
+                          className={`notification-item ${notif.read ? 'read' : 'unread'}`}
+                          onClick={() => markAsRead(notif.id)}
+                        >
+                          <div className="notification-content">
+                            <p className="notification-title">{notif.title}</p>
+                            <p className="notification-message">{notif.message}</p>
+                            <span className="notification-time">{formatTimeAgo(notif.time)}</span>
+                          </div>
+                          {!notif.read && <span className="unread-dot" />}
+                        </div>
+                      ))
+                    )}
                   </div>
-                  <Link to="/admin/notifications" className="dropdown-footer">
-                    View all notifications
-                  </Link>
+                  {notifications.length > 0 && (
+                    <button 
+                      className="dropdown-footer"
+                      onClick={() => {
+                        setShowNotifications(false);
+                        navigate('/admin');
+                      }}
+                    >
+                      View Dashboard
+                    </button>
+                  )}
                 </div>
               )}
             </div>
@@ -348,7 +527,11 @@ export function AdminLayout() {
             <div className="profile-wrapper">
               <button 
                 className="profile-btn"
-                onClick={() => setShowProfileMenu(!showProfileMenu)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowProfileMenu(!showProfileMenu);
+                  setShowNotifications(false);
+                }}
               >
                 <div className="profile-avatar">
                   <Shield size={18} />
@@ -362,11 +545,11 @@ export function AdminLayout() {
 
               {showProfileMenu && (
                 <div className="profile-dropdown">
-                  <Link to="/admin/profile" className="dropdown-item">
+                  <Link to="/admin/profile" className="dropdown-item" onClick={() => setShowProfileMenu(false)}>
                     <UserCog size={16} />
                     Profile Settings
                   </Link>
-                  <Link to="/admin/settings" className="dropdown-item">
+                  <Link to="/admin/settings" className="dropdown-item" onClick={() => setShowProfileMenu(false)}>
                     <Settings size={16} />
                     System Settings
                   </Link>
