@@ -38,3 +38,4 @@ export { Disclaimer } from './Disclaimer';
 // Static Pages - Product
 export { DownloadApp } from './DownloadApp';
 export { RequestDemo } from './RequestDemo';
+export { Sitemap } from './Sitemap';

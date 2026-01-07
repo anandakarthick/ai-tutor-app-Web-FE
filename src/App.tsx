@@ -43,6 +43,7 @@ import {
   // Product Pages
   DownloadApp,
   RequestDemo,
+  Sitemap,
 } from './pages';
 import { useAuthStore } from './store/authStore';
 import { useSubscriptionStore } from './store/subscriptionStore';
@@ -244,6 +245,7 @@ function App() {
         {/* Product Pages */}
         <Route path="/download" element={<DownloadApp />} />
         <Route path="/demo" element={<RequestDemo />} />
+        <Route path="/sitemap" element={<Sitemap />} />
 
         {/* Public Routes */}
         <Route
