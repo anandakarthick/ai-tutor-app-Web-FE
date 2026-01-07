@@ -1,11 +1,12 @@
 /**
- * Lesson Page - AI Chat Learning
+ * Lesson Page - Chat Learning
  */
 
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Send, Loader2, Bot, User, CheckCircle } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
+import { useSettings } from '../context/SettingsContext';
 import { contentApi, learningApi } from '../services/api';
 import toast from 'react-hot-toast';
 import './Lesson.css';
@@ -21,6 +22,7 @@ export function Lesson() {
   const { topicId } = useParams();
   const navigate = useNavigate();
   const { student } = useAuthStore();
+  const { settings } = useSettings();
   
   const [topic, setTopic] = useState<any>(null);
   const [content, setContent] = useState<any[]>([]);
@@ -97,7 +99,7 @@ export function Lesson() {
     const fallbackMsg: Message = {
       id: 'fallback',
       senderType: 'ai',
-      content: `Hello! 👋 I'm your AI tutor. I'm ready to help you learn about this topic.\n\nFeel free to ask me any questions, and I'll explain the concepts in a way that's easy to understand!\n\n**What would you like to learn about today?**`,
+      content: `Hello! 👋 I'm your learning assistant from ${settings.siteName}. I'm ready to help you learn about this topic.\n\nFeel free to ask me any questions, and I'll explain the concepts in a way that's easy to understand!\n\n**What would you like to learn about today?**`,
       createdAt: new Date().toISOString(),
     };
     setMessages([fallbackMsg]);

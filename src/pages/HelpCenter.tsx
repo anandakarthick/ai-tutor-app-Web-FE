@@ -32,7 +32,7 @@ const getFaqs = (siteName: string, supportEmail: string, supportPhone: string) =
   },
   {
     question: 'How does the AI teaching work?',
-    answer: 'Our AI tutor uses advanced language models to provide personalized explanations. It adapts to your learning pace, answers your questions in real-time, and provides examples relevant to your understanding level.',
+    answer: `Our AI-powered system uses advanced language models to provide personalized explanations. It adapts to your learning pace, answers your questions in real-time, and provides examples relevant to your understanding level.`,
     category: 'Features & Usage',
   },
   {
