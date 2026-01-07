@@ -32,14 +32,13 @@ export function AdminSettings() {
   const [saving, setSaving] = useState(false);
   const [showApiKey, setShowApiKey] = useState(false);
   const [showRazorpayKey, setShowRazorpayKey] = useState(false);
-  const [showWebhookSecret, setShowWebhookSecret] = useState(false);
 
   // Determine active section from URL
   const getActiveSection = () => {
     const path = location.pathname;
     if (path.includes('payment')) return 'payment';
-    if (path.includes('api-keys')) return 'api';
-    if (path.includes('app-config')) return 'app';
+    if (path.includes('api-keys')) return 'api-keys';
+    if (path.includes('app-config')) return 'app-config';
     if (path.includes('notifications')) return 'notifications';
     if (path.includes('security')) return 'security';
     if (path.includes('email')) return 'email';
@@ -48,6 +47,11 @@ export function AdminSettings() {
   };
 
   const [activeSection, setActiveSection] = useState(getActiveSection());
+
+  // Update active section when URL changes
+  useEffect(() => {
+    setActiveSection(getActiveSection());
+  }, [location.pathname]);
 
   const handleNavigate = (section: string) => {
     setActiveSection(section);
@@ -209,12 +213,13 @@ export function AdminSettings() {
         case 'payment':
           data = paymentSettings;
           break;
-        case 'api':
+        case 'api-keys':
           data = apiSettings;
           category = 'api';
           break;
-        case 'app':
+        case 'app-config':
           data = appSettings;
+          category = 'app';
           break;
         case 'notifications':
           data = notificationSettings;
@@ -246,8 +251,8 @@ export function AdminSettings() {
   const navItems = [
     { id: 'general', label: 'General', icon: Settings },
     { id: 'payment', label: 'Payment Gateway', icon: CreditCard },
-    { id: 'api', label: 'API Keys', icon: Key },
-    { id: 'app', label: 'App Configuration', icon: Smartphone },
+    { id: 'api-keys', label: 'API Keys', icon: Key },
+    { id: 'app-config', label: 'App Configuration', icon: Smartphone },
     { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'security', label: 'Security', icon: Shield },
     { id: 'email', label: 'Email', icon: Mail },
@@ -444,7 +449,7 @@ export function AdminSettings() {
           )}
 
           {/* API Keys Settings */}
-          {activeSection === 'api' && (
+          {activeSection === 'api-keys' && (
             <div className="settings-section">
               <h3>API Keys</h3>
               <p>Manage third-party API integrations</p>
@@ -516,7 +521,7 @@ export function AdminSettings() {
           )}
 
           {/* App Configuration */}
-          {activeSection === 'app' && (
+          {activeSection === 'app-config' && (
             <div className="settings-section">
               <h3>App Configuration</h3>
               <p>Mobile app settings and limits</p>

@@ -19,19 +19,18 @@ import {
   Search,
   ChevronDown,
   Shield,
-  Database,
   BarChart3,
   FileText,
-  Key,
   Wallet,
-  Building,
   Layers,
   UserCog,
   HelpCircle,
   Moon,
   Sun,
+  Loader2,
 } from 'lucide-react';
 import { useAdminStore } from '../store/adminStore';
+import { isAdminAuthenticated, clearAdminAuth } from '../../services/api/admin';
 import logoImage from '../../assets/images/logo.png';
 import './AdminLayout.css';
 
@@ -121,12 +120,13 @@ const menuItems = [
 export function AdminLayout() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { admin, logout, isAuthenticated } = useAdminStore();
+  const { admin, logout, isAuthenticated, checkAuth, _hasHydrated } = useAdminStore();
   
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [expandedMenu, setExpandedMenu] = useState<string | null>(null);
   const [darkMode, setDarkMode] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [notifications] = useState([
     { id: 1, title: 'New student registered', time: '5 min ago' },
     { id: 2, title: 'Payment received', time: '1 hour ago' },
@@ -135,15 +135,40 @@ export function AdminLayout() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
-  // Redirect if not authenticated
+  // Check authentication on mount and when hydration completes
   useEffect(() => {
-    if (!isAuthenticated) {
+    const verifyAuth = () => {
+      // First check localStorage directly
+      const hasToken = isAdminAuthenticated();
+      
+      if (hasToken) {
+        // Try to sync store with localStorage
+        checkAuth();
+        setIsCheckingAuth(false);
+      } else if (_hasHydrated) {
+        // Store has hydrated but no token in localStorage
+        if (!isAuthenticated) {
+          navigate('/admin/login');
+        }
+        setIsCheckingAuth(false);
+      }
+    };
+
+    // Small delay to allow hydration
+    const timer = setTimeout(verifyAuth, 100);
+    return () => clearTimeout(timer);
+  }, [_hasHydrated, isAuthenticated, checkAuth, navigate]);
+
+  // Redirect if not authenticated after hydration
+  useEffect(() => {
+    if (!isCheckingAuth && !isAuthenticated && !isAdminAuthenticated()) {
       navigate('/admin/login');
     }
-  }, [isAuthenticated, navigate]);
+  }, [isCheckingAuth, isAuthenticated, navigate]);
 
   const handleLogout = () => {
     logout();
+    clearAdminAuth();
     navigate('/admin/login');
   };
 
@@ -158,7 +183,18 @@ export function AdminLayout() {
     setExpandedMenu(expandedMenu === menuId ? null : menuId);
   };
 
-  if (!isAuthenticated) {
+  // Show loading while checking auth
+  if (isCheckingAuth) {
+    return (
+      <div className="admin-loading">
+        <Loader2 size={40} className="spinner" />
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
+  // Don't render if not authenticated
+  if (!isAuthenticated && !isAdminAuthenticated()) {
     return null;
   }
 

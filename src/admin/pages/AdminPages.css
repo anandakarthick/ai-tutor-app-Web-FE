@@ -1880,3 +1880,28 @@
 .form-group.full-width {
   grid-column: 1 / -1;
 }
+
+/* Loading Container */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 16px;
+  color: var(--admin-text-muted);
+}
+
+.loading-container .spinner {
+  animation: spin 1s linear infinite;
+  color: var(--admin-primary);
+}
+
+.loading-container p {
+  font-size: 14px;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
