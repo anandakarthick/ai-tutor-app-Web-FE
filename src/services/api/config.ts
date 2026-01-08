@@ -4,7 +4,7 @@
 
 // Use the same API as mobile app
 // Change this to your backend URL
-const DEV_API_URL = 'http://192.168.1.3:3000/api/v1';
+const DEV_API_URL = 'http://192.168.29.179:3000/api/v1';
 const PROD_API_URL = 'https://api.aitutor.com/api/v1';
 
 export const API_CONFIG = {

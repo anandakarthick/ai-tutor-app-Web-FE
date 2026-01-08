@@ -1,6 +1,6 @@
 /**
  * Site Settings Context
- * Provides site configuration (name, logo, etc.) throughout the app
+ * Provides site configuration (name, logo, maintenance mode, etc.) throughout the app
  */
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
@@ -17,6 +17,16 @@ interface SiteSettings {
   instagramUrl: string;
   linkedinUrl: string;
   youtubeUrl: string;
+  // Maintenance mode
+  maintenanceMode: boolean;
+  maintenanceMessage: string;
+  // App version (for reference)
+  appCurrentVersion: string;
+  appMinVersion: string;
+  appForceUpdate: boolean;
+  appUpdateMessage: string;
+  playStoreUrl: string;
+  appStoreUrl: string;
 }
 
 interface SettingsContextType {
@@ -37,6 +47,16 @@ const defaultSettings: SiteSettings = {
   instagramUrl: '',
   linkedinUrl: '',
   youtubeUrl: '',
+  // Maintenance mode defaults
+  maintenanceMode: false,
+  maintenanceMessage: 'We are currently under maintenance. Please check back soon.',
+  // App version defaults
+  appCurrentVersion: '1.0.0',
+  appMinVersion: '1.0.0',
+  appForceUpdate: false,
+  appUpdateMessage: 'A new version is available. Please update to continue.',
+  playStoreUrl: '',
+  appStoreUrl: '',
 };
 
 const SettingsContext = createContext<SettingsContextType>({
@@ -119,6 +139,16 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
             instagramUrl: data.instagramUrl || defaultSettings.instagramUrl,
             linkedinUrl: data.linkedinUrl || defaultSettings.linkedinUrl,
             youtubeUrl: data.youtubeUrl || defaultSettings.youtubeUrl,
+            // Maintenance mode
+            maintenanceMode: data.maintenanceMode || false,
+            maintenanceMessage: data.maintenanceMessage || defaultSettings.maintenanceMessage,
+            // App version
+            appCurrentVersion: data.appCurrentVersion || defaultSettings.appCurrentVersion,
+            appMinVersion: data.appMinVersion || defaultSettings.appMinVersion,
+            appForceUpdate: data.appForceUpdate || false,
+            appUpdateMessage: data.appUpdateMessage || defaultSettings.appUpdateMessage,
+            playStoreUrl: data.playStoreUrl || defaultSettings.playStoreUrl,
+            appStoreUrl: data.appStoreUrl || defaultSettings.appStoreUrl,
           };
           
           setSettings(newSettings);

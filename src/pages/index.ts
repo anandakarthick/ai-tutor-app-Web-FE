@@ -39,3 +39,6 @@ export { Disclaimer } from './Disclaimer';
 export { DownloadApp } from './DownloadApp';
 export { RequestDemo } from './RequestDemo';
 export { Sitemap } from './Sitemap';
+
+// Special Pages
+export { MaintenancePage } from './MaintenancePage';

@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { Layout, SessionTerminatedModal, SubscriptionGuard } from './components';
-import { SettingsProvider } from './context/SettingsContext';
+import { SettingsProvider, useSettings } from './context/SettingsContext';
 import {
   Landing,
   Dashboard,
@@ -45,6 +45,8 @@ import {
   DownloadApp,
   RequestDemo,
   Sitemap,
+  // Maintenance
+  MaintenancePage,
 } from './pages';
 
 // Admin imports
@@ -169,6 +171,31 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+// Maintenance Mode Wrapper
+function MaintenanceWrapper({ children }: { children: React.ReactNode }) {
+  const location = useLocation();
+  const { settings, loading } = useSettings();
+
+  // Allow admin routes to bypass maintenance mode
+  const isAdminRoute = location.pathname.startsWith('/admin');
+
+  // Show loading while checking settings
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#f5f5f5' }}>
+        <div className="loading-spinner"></div>
+      </div>
+    );
+  }
+
+  // Show maintenance page if maintenance mode is enabled (except for admin routes)
+  if (settings.maintenanceMode && !isAdminRoute) {
+    return <MaintenancePage />;
+  }
+
+  return <>{children}</>;
+}
+
 function App() {
   const { loadStoredAuth, fetchStudents, student, isAuthenticated, sessionTerminated, setSessionTerminated } = useAuthStore();
   const { checkSubscription, clearSubscription } = useSubscriptionStore();
@@ -269,6 +296,7 @@ function App() {
           }}
         />
 
+      <MaintenanceWrapper>
       <Routes>
         {/* Landing Page */}
         <Route path="/" element={<Landing />} />
@@ -486,12 +514,13 @@ function App() {
         {/* 404 - Redirect to Landing */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      </MaintenanceWrapper>
 
       {/* Session Terminated Modal */}
-        <SessionTerminatedModal
-          isOpen={sessionTerminated}
-          onClose={handleSessionModalClose}
-        />
+      <SessionTerminatedModal
+        isOpen={sessionTerminated}
+        onClose={handleSessionModalClose}
+      />
       </BrowserRouter>
     </SettingsProvider>
   );

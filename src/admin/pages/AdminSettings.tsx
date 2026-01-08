@@ -74,6 +74,7 @@ export function AdminSettings() {
     timezone: 'Asia/Kolkata',
     language: 'en',
     maintenance_mode: false,
+    maintenance_message: '',
   });
 
   const [paymentSettings, setPaymentSettings] = useState({
@@ -95,6 +96,7 @@ export function AdminSettings() {
     app_current_version: '1.0.0',
     app_min_version: '1.0.0',
     app_force_update: false,
+    app_update_message: '',
     play_store_url: '',
     app_store_url: '',
     max_login_devices: 3,
@@ -394,6 +396,23 @@ export function AdminSettings() {
                   <span className="toggle-slider"></span>
                 </label>
               </div>
+              {generalSettings.maintenance_mode && (
+                <div className="form-group full-width" style={{ marginTop: '16px' }}>
+                  <label>Maintenance Message</label>
+                  <textarea 
+                    value={generalSettings.maintenance_message}
+                    onChange={(e) => setGeneralSettings({...generalSettings, maintenance_message: e.target.value})}
+                    placeholder="We are currently under maintenance. Please check back soon."
+                    rows={3}
+                  />
+                </div>
+              )}
+              {generalSettings.maintenance_mode && (
+                <div className="alert alert-warning" style={{ marginTop: '16px' }}>
+                  <AlertTriangle size={16} />
+                  Maintenance mode is ON. Users will not be able to access the web app and mobile app.
+                </div>
+              )}
             </div>
           )}
 
@@ -612,6 +631,23 @@ export function AdminSettings() {
                   <span className="toggle-slider"></span>
                 </label>
               </div>
+              {appSettings.app_force_update && (
+                <div className="form-group full-width" style={{ marginTop: '16px' }}>
+                  <label>Update Message</label>
+                  <textarea 
+                    value={appSettings.app_update_message}
+                    onChange={(e) => setAppSettings({...appSettings, app_update_message: e.target.value})}
+                    placeholder="A new version is available. Please update to continue using the app."
+                    rows={3}
+                  />
+                </div>
+              )}
+              {appSettings.app_force_update && (
+                <div className="alert alert-warning" style={{ marginTop: '16px' }}>
+                  <AlertTriangle size={16} />
+                  Force update is ON. Users with app version below {appSettings.app_min_version} will be forced to update.
+                </div>
+              )}
               <div className="setting-item">
                 <div className="setting-info">
                   <h4>Offline Mode</h4>
